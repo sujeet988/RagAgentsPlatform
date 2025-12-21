@@ -39,15 +39,7 @@ namespace RagAgents.Core.Services
             var chunks = SplitText(text, 800, 100);
 
             // First Check index exists or not in azure ai seacch if not  it will create index
-             var isIndexExists = await _search.IndexExistsAsync();
-            if (!isIndexExists)
-            {
-                isIndexExists = await _search.CreateIndexAsync();
-
-            }
-
-            if (isIndexExists)
-            {
+              await _search.CreateIndexIfNotExistsAsync();
 
                 // 4️⃣ For each chunk: create embedding and index in Azure Search
                 foreach (var chunk in chunks)
@@ -64,7 +56,7 @@ namespace RagAgents.Core.Services
                         fileName = fileName
                     });
                 }
-            }
+            
         }
 
         // Helper: split long text into chunks with overlap

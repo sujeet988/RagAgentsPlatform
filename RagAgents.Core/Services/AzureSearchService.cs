@@ -1,12 +1,16 @@
 ﻿using Azure;
 using Azure.Search.Documents;
+using Azure.Search.Documents.Indexes;
+using Azure.Search.Documents.Indexes.Models;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Options;
 using RagAgents.Core.Interfaces;
 using RagAgents.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,7 +19,10 @@ namespace RagAgents.Core.Services
     public class AzureSearchService: IAzureSearchService
     {
         private readonly SearchClient _client;
+        private readonly SearchIndexClient _indexClient;
         private readonly string _indexName ;
+        private readonly string _endPoint;
+        private readonly string _key;
         public AzureSearchService(IOptions<AzureSearchAIOptions> options) {
             var cfg = options.Value;
             _client = new SearchClient(
@@ -23,6 +30,11 @@ namespace RagAgents.Core.Services
                 cfg.IndexName,
                 new AzureKeyCredential(cfg.Key));
             _indexName= cfg.IndexName;
+            _indexClient  = new SearchIndexClient(
+                new Uri(cfg.Endpoint),
+                new AzureKeyCredential(cfg.Key));
+
+
         }
 
         public async Task IndexAsync<T>(T document)
@@ -60,24 +72,56 @@ namespace RagAgents.Core.Services
                .Select(r => r.Document["content"].ToString())
                .ToList();
         }
-        public async Task<bool> IndexExistsAsync()
+
+        public async Task CreateIndexIfNotExistsAsync()
         {
             // 🔹 Fast existence check
-            try
+            await foreach (var name in _indexClient.GetIndexNamesAsync())
             {
-                await _client.UploadDocumentsAsync(_indexName);
-                return true;
+                if (name == _indexName)
+                    return;
             }
-            catch(Exception ex)
+
+            var fields = new List<SearchField>
             {
-                return false;
+                new SearchField("id", SearchFieldDataType.String)
+                {
+                IsKey = true
+                },
 
+                new SearchField("content", SearchFieldDataType.String)
+                {
+                IsSearchable = true
+                },
+
+                new SearchField("fileName", SearchFieldDataType.String)
+                {
+                IsSearchable = true,
+                IsFilterable = true
+                },
+
+                new SearchField(
+                "embedding",
+                SearchFieldDataType.Collection(SearchFieldDataType.Single))
+                {
+                IsSearchable = true,
+                VectorSearchDimensions = 1536,
+                VectorSearchProfileName = "vector-config"
+                }
+            };
+
+            var index = new SearchIndex(_indexName, fields)
+            {
+                VectorSearch = new VectorSearch
+                {
+                    Algorithms =
+            {
+                new HnswAlgorithmConfiguration("vector-config")
             }
-        }
+                }
+            };
 
-        public Task<bool> CreateIndexAsync()
-        {
-            throw new NotImplementedException();
+            await _indexClient.CreateOrUpdateIndexAsync(index);
         }
     }
 }
