@@ -109,7 +109,7 @@ namespace RagAgents.Core.Services
             SearchFieldDataType.Collection(SearchFieldDataType.Single))
             {
             IsSearchable = true,
-            VectorSearchDimensions = 1536,
+            VectorSearchDimensions = 3072, // is default value 
             VectorSearchProfileName = "vector-profile"
             }
             };
