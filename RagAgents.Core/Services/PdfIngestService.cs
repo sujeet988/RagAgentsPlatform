@@ -23,23 +23,27 @@ namespace RagAgents.Core.Services
         }
         public async Task IngestAsync(Stream pdf, string fileName)
         {
-            // 1️⃣ Analyze PDF using prebuilt layout model
-            var operation = await _docClient.AnalyzeDocumentAsync(
-                WaitUntil.Completed,
-                "prebuilt-layout",
-                pdf);
+            try
+            {
 
-            // 2️⃣ Extract all text from the document
-            var text = string.Join("\n",
-                operation.Value.Pages
-                    .SelectMany(p => p.Lines)
-                    .Select(l => l.Content));
 
-            // 3️⃣ Split text into manageable chunks
-            var chunks = SplitText(text, 800, 100);
+                // 1️⃣ Analyze PDF using prebuilt layout model
+                var operation = await _docClient.AnalyzeDocumentAsync(
+                    WaitUntil.Completed,
+                    "prebuilt-layout",
+                    pdf);
 
-            // First Check index exists or not in azure ai seacch if not  it will create index
-              await _search.CreateIndexIfNotExistsAsync();
+                // 2️⃣ Extract all text from the document
+                var text = string.Join("\n",
+                    operation.Value.Pages
+                        .SelectMany(p => p.Lines)
+                        .Select(l => l.Content));
+
+                // 3️⃣ Split text into manageable chunks
+                var chunks = SplitText(text, 800, 100);
+
+                // First Check index exists or not in azure ai seacch if not  it will create index
+                await _search.CreateIndexIfNotExistsAsync();
 
                 // 4️⃣ For each chunk: create embedding and index in Azure Search
                 foreach (var chunk in chunks)
@@ -56,6 +60,11 @@ namespace RagAgents.Core.Services
                         fileName = fileName
                     });
                 }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
             
         }
 

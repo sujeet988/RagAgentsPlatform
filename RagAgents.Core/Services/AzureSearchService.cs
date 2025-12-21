@@ -75,53 +75,82 @@ namespace RagAgents.Core.Services
 
         public async Task CreateIndexIfNotExistsAsync()
         {
-            // 🔹 Fast existence check
-            await foreach (var name in _indexClient.GetIndexNamesAsync())
+            try
             {
-                if (name == _indexName)
-                    return;
-            }
 
-            var fields = new List<SearchField>
-            {
-                new SearchField("id", SearchFieldDataType.String)
-                {
-                IsKey = true
-                },
 
-                new SearchField("content", SearchFieldDataType.String)
+                // 🔹 Fast existence check
+                await foreach (var name in _indexClient.GetIndexNamesAsync())
                 {
-                IsSearchable = true
-                },
-
-                new SearchField("fileName", SearchFieldDataType.String)
-                {
-                IsSearchable = true,
-                IsFilterable = true
-                },
-
-                new SearchField(
-                "embedding",
-                SearchFieldDataType.Collection(SearchFieldDataType.Single))
-                {
-                IsSearchable = true,
-                VectorSearchDimensions = 1536,
-                VectorSearchProfileName = "vector-config"
+                    if (name == _indexName)
+                        return;
                 }
-            };
 
-            var index = new SearchIndex(_indexName, fields)
+                var fields = new List<SearchField>
             {
-                VectorSearch = new VectorSearch
+            new SearchField("id", SearchFieldDataType.String)
+            {
+            IsKey = true
+            },
+
+            new SearchField("content", SearchFieldDataType.String)
+            {
+            IsSearchable = true
+            },
+
+            new SearchField("fileName", SearchFieldDataType.String)
+            {
+            IsSearchable = true,
+            IsFilterable = true
+            },
+
+            new SearchField(
+            "embedding",
+            SearchFieldDataType.Collection(SearchFieldDataType.Single))
+            {
+            IsSearchable = true,
+            VectorSearchDimensions = 1536,
+            VectorSearchProfileName = "vector-profile"
+            }
+            };
+                var vectorSearch = new VectorSearch
                 {
                     Algorithms =
             {
-                new HnswAlgorithmConfiguration("vector-config")
+            new HnswAlgorithmConfiguration("vector-config")
+            {
+            Parameters = new HnswParameters
+            {
+            Metric = VectorSearchAlgorithmMetric.Cosine,
+            M = 4,
+            EfConstruction = 400
             }
-                }
-            };
+            }
+            },
 
-            await _indexClient.CreateOrUpdateIndexAsync(index);
+                    Profiles =
+            {
+            new VectorSearchProfile(
+            name: "vector-profile",
+            algorithmConfigurationName: "vector-config")
+            }
+
+                };
+
+                var index = new SearchIndex(_indexName, fields)
+                {
+                    VectorSearch = vectorSearch
+                };
+
+                await _indexClient.CreateOrUpdateIndexAsync(index);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+
+
         }
     }
 }
