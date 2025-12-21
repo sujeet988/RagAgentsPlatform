@@ -15,12 +15,14 @@ namespace RagAgents.Core.Services
     public class AzureSearchService: IAzureSearchService
     {
         private readonly SearchClient _client;
+        private readonly string _indexName ;
         public AzureSearchService(IOptions<AzureSearchAIOptions> options) {
             var cfg = options.Value;
             _client = new SearchClient(
                 new Uri(cfg.Endpoint),
                 cfg.IndexName,
                 new AzureKeyCredential(cfg.Key));
+            _indexName= cfg.IndexName;
         }
 
         public async Task IndexAsync<T>(T document)
@@ -57,6 +59,19 @@ namespace RagAgents.Core.Services
             return results.Value.GetResults()
                .Select(r => r.Document["content"].ToString())
                .ToList();
+        }
+        public async Task CreateIndexIfNotExistsAsync()
+        {
+            // 🔹 Fast existence check
+            try
+            {
+                await _client.UploadDocumentsAsync(_indexName);
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+
+            }
         }
     }
 }

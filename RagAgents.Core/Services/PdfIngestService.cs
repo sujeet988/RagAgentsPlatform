@@ -38,6 +38,9 @@ namespace RagAgents.Core.Services
             // 3️⃣ Split text into manageable chunks
             var chunks = SplitText(text, 800, 100);
 
+            // First Check index exists or not in azure ai seacch if not  it will create index
+             await _search.CreateIndexIfNotExistsAsync();
+
             // 4️⃣ For each chunk: create embedding and index in Azure Search
             foreach (var chunk in chunks)
             {
