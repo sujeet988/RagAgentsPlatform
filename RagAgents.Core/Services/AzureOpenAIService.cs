@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Azure.AI.OpenAI;
+using Microsoft.Extensions.Options;
 using OpenAI.Chat;
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,17 +17,15 @@ namespace RagAgents.Core.Services
         private readonly AzureOpenAIClient _client;
         private readonly string _embedDeployment;
         private readonly string _chatDeployment;
-        public AzureOpenAIService(string endpoint,
-        string apiKey,
-        string embedDeployment,
-        string chatDeployment)
+        public AzureOpenAIService(IOptions<AzureOpenAIOptions> options)
         {
+            var cfg = options.Value;
             _client = new AzureOpenAIClient(
-                new Uri(endpoint),
-                new AzureKeyCredential(apiKey));
+                new Uri(cfg.Endpoint),
+                new AzureKeyCredential(cfg.Key));
 
-            _embedDeployment = embedDeployment;
-            _chatDeployment = chatDeployment;
+            _embedDeployment = cfg.EmbeddingDeployment;
+            _chatDeployment = cfg.ChatDeployment;
 
         }
         public async Task<float[]> CreateEmbeddingAsync(string text)

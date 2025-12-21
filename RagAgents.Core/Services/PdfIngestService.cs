@@ -12,9 +12,9 @@ namespace RagAgents.Core.Services
     public class PdfIngestService : IPdfIngestService
     {
         private readonly DocumentAnalysisClient _docClient;
-        private readonly AzureOpenAIService _openAI;      // Use AzureOpenAIService (2.1.0)
-        private readonly AzureSearchService _search;      // Azure.Search.Documents based service
-        public PdfIngestService(DocumentAnalysisClient docClient,AzureOpenAIService openAI,AzureSearchService search)
+        private readonly IAzureOpenAIService _openAI;      // Use AzureOpenAIService (2.1.0)
+        private readonly IAzureSearchService _search;      // Azure.Search.Documents based service
+        public PdfIngestService(DocumentAnalysisClient docClient,IAzureOpenAIService openAI,IAzureSearchService search)
         {
             _docClient = docClient;
             _openAI = openAI;
