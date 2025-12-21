@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Models
 {
-    internal class ChatMessageModel
+    public class ChatMessageModel
     {
     }
 }
