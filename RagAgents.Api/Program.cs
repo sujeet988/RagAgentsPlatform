@@ -1,6 +1,7 @@
 
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using RagAgents.Core.Services;
 
 namespace RagAgents.Api
@@ -11,8 +12,14 @@ namespace RagAgents.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // Load Configuration
+            builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
+            builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
 
+            // Add services to the container.
+            builder.Services.AddSingleton<IAzureOpenAIService,AzureOpenAIService>();
+            builder.Services.AddSingleton<IAzureSearchService,AzureSearchService>();
+            builder.Services.AddSingleton<IConversationStore,ConversationStore>();
             builder.Services.TryAddTransient<IRagService, RagService>();
 
             builder.Services.AddControllers();
