@@ -1,4 +1,8 @@
 
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using RagAgents.Core.Interfaces;
+using RagAgents.Core.Services;
+
 namespace RagAgents.Api
 {
     public class Program
@@ -8,6 +12,8 @@ namespace RagAgents.Api
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+
+            builder.Services.TryAddTransient<IRagService, RagService>();
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
