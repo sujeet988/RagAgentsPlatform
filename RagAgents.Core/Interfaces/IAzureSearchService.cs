@@ -6,6 +6,7 @@ namespace RagAgents.Core.Interfaces
     {
         Task IndexAsync<T>(T document);
         Task<List<string>> VectorSearchAsync(float[] embedding);
-        Task CreateIndexIfNotExistsAsync();
+        Task<bool> IndexExistsAsync();
+        Task<bool> CreateIndexAsync();
     }
 }

@@ -39,22 +39,31 @@ namespace RagAgents.Core.Services
             var chunks = SplitText(text, 800, 100);
 
             // First Check index exists or not in azure ai seacch if not  it will create index
-             await _search.CreateIndexIfNotExistsAsync();
-
-            // 4️⃣ For each chunk: create embedding and index in Azure Search
-            foreach (var chunk in chunks)
+             var isIndexExists = await _search.IndexExistsAsync();
+            if (!isIndexExists)
             {
-                // Generate embedding using Azure OpenAI
-                var embedding = await _openAI.CreateEmbeddingAsync(chunk);
+                isIndexExists = await _search.CreateIndexAsync();
 
-                // Index chunk in Azure AI Search
-                await _search.IndexAsync(new
+            }
+
+            if (isIndexExists)
+            {
+
+                // 4️⃣ For each chunk: create embedding and index in Azure Search
+                foreach (var chunk in chunks)
                 {
-                    id = Guid.NewGuid().ToString(),
-                    content = chunk,
-                    embedding = embedding,
-                    fileName = fileName
-                });
+                    // Generate embedding using Azure OpenAI
+                    var embedding = await _openAI.CreateEmbeddingAsync(chunk);
+
+                    // Index chunk in Azure AI Search
+                    await _search.IndexAsync(new
+                    {
+                        id = Guid.NewGuid().ToString(),
+                        content = chunk,
+                        embedding = embedding,
+                        fileName = fileName
+                    });
+                }
             }
         }
 

@@ -60,18 +60,24 @@ namespace RagAgents.Core.Services
                .Select(r => r.Document["content"].ToString())
                .ToList();
         }
-        public async Task CreateIndexIfNotExistsAsync()
+        public async Task<bool> IndexExistsAsync()
         {
             // 🔹 Fast existence check
             try
             {
                 await _client.UploadDocumentsAsync(_indexName);
+                return true;
             }
             catch(Exception ex)
             {
-                throw ex;
+                return false;
 
             }
+        }
+
+        public Task<bool> CreateIndexAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }
