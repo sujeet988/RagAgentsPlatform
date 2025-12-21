@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Models
 {
-    internal class Citation
+    public class Citation
     {
+        public string FileName { get; set; } = default!;
+        public string Snippet { get; set; } = default!;
     }
 }

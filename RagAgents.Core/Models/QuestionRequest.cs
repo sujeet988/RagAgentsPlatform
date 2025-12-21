@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Models
 {
-    internal class QuestionRequest
+    public class QuestionRequest
     {
+        public string Question { get; set; } = default!;
+        public string ConversationId { get; set; } = default!;
+        public string UserId { get; set; } = default!;
     }
 }
