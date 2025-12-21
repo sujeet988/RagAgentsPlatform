@@ -20,7 +20,7 @@ public class PdfBlobIngestFunction
     }
 
     [Function(nameof(PdfBlobIngestFunction))]
-    public async Task Run([BlobTrigger("samples-workitems/{name}", Connection = "")] Stream blobStream, string name)
+    public async Task Run([BlobTrigger("pdfcontainer/{name}", Connection = "StorageConnectiontest")] Stream blobStream, string name)
     {
         using var blobStreamReader = new StreamReader(blobStream);
         var content = await blobStreamReader.ReadToEndAsync();
