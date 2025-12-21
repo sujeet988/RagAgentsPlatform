@@ -25,12 +25,20 @@ builder.Services.Configure<AzureOpenAIOptions>(options =>
     options.EmbeddingDeployment = builder.Configuration["AzureOpenAI:EmbeddingDeployment"];
     options.ChatDeployment = builder.Configuration["AzureOpenAI:ChatDeployment"];
 });
+builder.Services.Configure<AzureSearchAIOptions>(options =>
+{
+    options.Endpoint = builder.Configuration["AzureSearch:Endpoint"];
+    options.Key = builder.Configuration["AzureSearch:Key"];
+    options.IndexName = builder.Configuration["AzureSearch:IndexName"];
+});
 
 // get all config values
 var config = builder.Configuration;
 var result = config["DocumentAI:Endpoint"];
 
 //ADD YOUR SERVICES HERE 
+builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
+builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
 // Register PdfIngestService with the DocumentAnalysisClient injected
 builder.Services.AddSingleton<IPdfIngestService>(sp =>
 {

@@ -13,4 +13,11 @@ namespace RagAgents.Core.Models
         public string EmbeddingDeployment { get; set; } = default!;
         public string ChatDeployment { get; set; } = default!;
     }
+    public class AzureSearchAIOptions
+    {
+        public string Endpoint { get; set; } = default!;
+        public string Key { get; set; } = default!;
+        public string IndexName { get; set; } = default!;
+
+    }
 }

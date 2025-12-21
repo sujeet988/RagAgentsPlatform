@@ -1,7 +1,9 @@
 ﻿using Azure;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
+using Microsoft.Extensions.Options;
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,11 +15,12 @@ namespace RagAgents.Core.Services
     public class AzureSearchService: IAzureSearchService
     {
         private readonly SearchClient _client;
-        public AzureSearchService(string endpoint, string indexName, string apiKey) {
+        public AzureSearchService(IOptions<AzureSearchAIOptions> options) {
+            var cfg = options.Value;
             _client = new SearchClient(
-                new Uri(endpoint),
-                indexName,
-                new AzureKeyCredential(apiKey));
+                new Uri(cfg.Endpoint),
+                cfg.IndexName,
+                new AzureKeyCredential(cfg.Key));
         }
 
         public async Task IndexAsync<T>(T document)
