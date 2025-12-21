@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿using Azure.Search.Documents;
+using Azure.Search.Documents.Models;
 namespace RagAgents.Core.Interfaces
 {
-    internal interface IAzureSearchService
+    public interface IAzureSearchService
     {
+        Task IndexAsync<T>(T document);
+        Task<List<string>> VectorSearchAsync(float[] embedding);
     }
 }
