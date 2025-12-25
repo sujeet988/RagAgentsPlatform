@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using RagAgents.Core.Interfaces;
 using RagAgents.Core.Models;
@@ -26,6 +26,17 @@ namespace RagAgents.Api
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            //CORS
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend", policy =>
+                {
+                    policy
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
 
             var app = builder.Build();
 
@@ -37,6 +48,9 @@ namespace RagAgents.Api
             }
 
             app.UseHttpsRedirection();
+
+            //MUST be before authorization & controllers
+            app.UseCors("AllowFrontend");
 
             app.UseAuthorization();
 
