@@ -37,7 +37,6 @@ namespace RagAgents.Api.Controllers
 
         [HttpGet]
         [Route("ping")]
-        [AllowAnonymous]
         public  IActionResult ping()
         {
             return Ok("pong");

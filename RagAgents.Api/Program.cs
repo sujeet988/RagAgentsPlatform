@@ -14,6 +14,8 @@ namespace RagAgents.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // add http clinet
+            builder.Services.AddHttpClient();
 
             // Add Authentication and authrization
             builder.Services
