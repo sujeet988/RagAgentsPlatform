@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OpenAI.RealtimeConversation;
 using RagAgents.Core.Interfaces;
@@ -19,6 +20,7 @@ namespace RagAgents.Api.Controllers
         // POST: api/rag/ask
         [HttpPost]
         [Route("ask")]
+        [Authorize(Policy = "RagUser")]
         public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Question))

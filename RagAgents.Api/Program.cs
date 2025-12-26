@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using RagAgents.Core.Interfaces;
 using RagAgents.Core.Models;
 using RagAgents.Core.Services;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace RagAgents.Api
 {
@@ -11,6 +13,22 @@ namespace RagAgents.Api
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+
+            // Add Authentication and authrization
+            builder.Services
+            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApi(
+             builder.Configuration.GetSection("AzureAd"));
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RagUser", policy =>
+                    policy.RequireRole("RagUser"));
+
+                options.AddPolicy("RagAdmin", policy =>
+                    policy.RequireRole("RagAdmin"));
+            });
 
             // Load Configuration
             builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
@@ -52,6 +70,7 @@ namespace RagAgents.Api
             //MUST be before authorization & controllers
             app.UseCors("AllowFrontend");
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
