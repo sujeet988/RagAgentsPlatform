@@ -25,7 +25,12 @@ namespace RagAgents.Api.Controllers
                 return BadRequest("Question is missing");
 
             var answer = await _ragService.AskAsync(request.Question);
-            return Ok(new { answer });
+            ChatMessageModel chatMessageModel = new ChatMessageModel();
+            chatMessageModel.Id = Guid.NewGuid().ToString();
+            chatMessageModel.Timestamp = DateTime.UtcNow;
+            chatMessageModel.Content = answer;
+            chatMessageModel.Role = "assistant";
+            return Ok(new { chatMessageModel });
         }
 
         [HttpGet]

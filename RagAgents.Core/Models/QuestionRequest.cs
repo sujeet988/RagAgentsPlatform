@@ -10,6 +10,6 @@ namespace RagAgents.Core.Models
     {
         public string Question { get; set; } = default!;
         public string ConversationId { get; set; } = default!;
-        public string UserId { get; set; } = default!;
+       // public string UserId { get; set; } = default!;
     }
 }
