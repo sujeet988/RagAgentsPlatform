@@ -9,6 +9,7 @@ namespace RagAgents.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Policy = "RagUser")]
     public class ChatController : ControllerBase
     {
         private readonly IRagService _ragService;
@@ -20,7 +21,6 @@ namespace RagAgents.Api.Controllers
         // POST: api/rag/ask
         [HttpPost]
         [Route("ask")]
-        [Authorize(Policy = "RagUser")]
         public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Question))
@@ -37,6 +37,7 @@ namespace RagAgents.Api.Controllers
 
         [HttpGet]
         [Route("ping")]
+        [AllowAnonymous]
         public  IActionResult ping()
         {
             return Ok("pong");
