@@ -17,45 +17,30 @@ namespace RagAgents.Core.Services
          .GetContainer("conversations");
 
         }
-        public async Task<IReadOnlyList<ChatMessageModel>> GetHistoryAsync(string conversationId, int maxMessages)
+        public async Task<IReadOnlyList<ChatMessageModel>> GetHistoryAsync(string conversationId, string userId, int maxMessages)
         {
-            try
+            var query = new QueryDefinition(
+          "SELECT * FROM c WHERE c.userId = @uid AND c.conversationId = @cid ORDER BY c.timestamp DESC")
+          .WithParameter("@uid", userId)
+          .WithParameter("@cid", conversationId);
+
+            var iterator = _container.GetItemQueryIterator<ChatMessageModel>(query);
+            var results = new List<ChatMessageModel>();
+
+            while (iterator.HasMoreResults && results.Count < maxMessages)
             {
-                var query = new QueryDefinition("SELECT * FROM c WHERE c.conversationId = @cid ORDER BY c.timestamp DESC")
-                .WithParameter("@cid", conversationId);
-
-                var iterator = _container.GetItemQueryIterator<ChatMessageModel>(
-                    query,
-                    requestOptions: new QueryRequestOptions
-                    {
-                        PartitionKey = new PartitionKey(conversationId),
-                        MaxItemCount = maxMessages
-                    });
-
-                var results = new List<ChatMessageModel>();
-
-                while (iterator.HasMoreResults && results.Count < maxMessages)
-                {
-                    var response = await iterator.ReadNextAsync();
-                    results.AddRange(response);
-                }
-
-                // Return oldest → newest
-                return results
-                    .OrderBy(m => m.Timestamp)
-                    .ToList();
+                var page = await iterator.ReadNextAsync();
+                results.AddRange(page);
             }
-            catch(Exception ex)
-            {
-                 throw;
-            }
+
+            return results;
         }
 
         public async Task SaveMessageAsync(ChatMessageModel message)
         {
-            await _container.CreateItemAsync(
-             message,
-             new PartitionKey(message.ConversationId));
+            await _container.UpsertItemAsync(
+           message,
+           new PartitionKey(message.UserId));
         }
     }
 }
