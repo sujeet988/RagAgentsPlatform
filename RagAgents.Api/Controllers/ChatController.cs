@@ -26,10 +26,8 @@ namespace RagAgents.Api.Controllers
         [Route("ask")]
         public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
         {
-            // var userId = User.GetUserId(); // ✅ FROM TOKEN
             var userId = User.GetUserId();          // GUID
             var email = User.GetUserEmail();       // user@company.com
-           // var name = .GetDisplayName();     // Sujeet Kumar
 
 
             if (string.IsNullOrWhiteSpace(request.Question))
