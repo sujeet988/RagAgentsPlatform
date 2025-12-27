@@ -65,16 +65,33 @@ namespace RagAgents.Api.Controllers
             if (string.IsNullOrWhiteSpace(request.Question))
                 return BadRequest("Question is missing");
 
-            var answer = await _ragService.AskWithHistoryNoStreamAsync(request.Question,request.ConversationId,userId);
+            var answer = await _ragService.AskWithHistoryNoStreamAsync(request.Question, request.ConversationId, userId);
             return Ok(answer);
+        }
+
+        [HttpGet("history/{conversationId}")]
+        public async Task<IActionResult> History(string conversationId)
+        {
+            var userId = User.GetUserId();
+
+            if (string.IsNullOrWhiteSpace(userId))
+                return Unauthorized();
+
+            var history = await _conversationStore.GetHistoryAsync(
+                conversationId,
+                userId,
+                maxMessages: 50);
+
+            return Ok(history);
         }
 
         [HttpGet]
         [Route("ping")]
-        public  IActionResult ping()
+        public IActionResult ping()
         {
             return Ok("pong");
         }
+
 
     }
 }
