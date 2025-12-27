@@ -16,8 +16,8 @@ namespace RagAgents.Api.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IRagService _ragService;
-        private readonly IConversationStore _conversationStore;
-        public ChatController(IRagService ragService, IConversationStore conversationStore)
+        private readonly IConversationStoreInMemory _conversationStore;
+        public ChatController(IRagService ragService, IConversationStoreInMemory conversationStore)
         {
             _ragService = ragService;
             _conversationStore = conversationStore;
