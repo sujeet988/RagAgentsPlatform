@@ -54,7 +54,7 @@ namespace RagAgents.Core.Services
 
             // Load recent history
             var history = await _conversationStore.GetHistoryAsync(
-                conversationId, userId, 6);
+                conversationId, userId, 50);
 
             var historyText = string.Join("\n",
                 history.Select(m => $"{m.Role}: {m.Content}"));

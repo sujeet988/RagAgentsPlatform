@@ -11,7 +11,7 @@ namespace RagAgents.Core.Services
     public class InMemoryConversationStore : IConversationStoreInMemory
     {
         private static readonly List<ChatMessageModel> _messages = new();
-        public Task<IReadOnlyList<ChatMessageModel>> GetHistoryAsync(string conversationId, string userId, int maxMessages)
+        public Task<IReadOnlyList<ChatMessageModel>> GetHistoryAsync(string conversationId, string userId, int maxMessages=50)
         {
             var history = _messages
            .Where(m =>
