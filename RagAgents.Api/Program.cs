@@ -39,7 +39,7 @@ namespace RagAgents.Api
             // Add services to the container.
             builder.Services.AddSingleton<IAzureOpenAIService,AzureOpenAIService>();
             builder.Services.AddSingleton<IAzureSearchService,AzureSearchService>();
-            builder.Services.AddSingleton<IConversationStore,ConversationStore>();
+            builder.Services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
             builder.Services.TryAddTransient<IRagService, RagService>();
 
             builder.Services.AddControllers();

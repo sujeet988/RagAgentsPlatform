@@ -1,4 +1,5 @@
 ﻿using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,12 +12,12 @@ namespace RagAgents.Core.Services
     {
         private readonly IAzureOpenAIService _openAI;
         private readonly IAzureSearchService _search;
-        private readonly IConversationStore _store;
-        public RagService(IAzureOpenAIService openAI,IAzureSearchService search,IConversationStore store)
+        private readonly IConversationStoreInMemory _conversationStore;
+        public RagService(IAzureOpenAIService openAI,IAzureSearchService search, IConversationStoreInMemory conversationStore)
         {
             _openAI = openAI;
             _search = search;
-            _store = store;
+            _conversationStore = conversationStore;
 
         }
         public async Task<string> AskAsync(string question)
@@ -40,9 +41,66 @@ namespace RagAgents.Core.Services
             return await _openAI.GenerateAnswerAsync(prompt);
         }
 
+        public async Task<ChatMessageModel> AskWithHistoryNoStreamAsync(string question, string conversationId, string userId)
+        {
+            // 1️⃣ Save user message
+            await _conversationStore.SaveMessageAsync(new ChatMessageModel
+            {
+                ConversationId = conversationId,
+                UserId = userId,
+                Role = "user",
+                Content = question
+            });
+
+            // Load recent history
+            var history = await _conversationStore.GetHistoryAsync(
+                conversationId, userId, 6);
+
+            var historyText = string.Join("\n",
+                history.Select(m => $"{m.Role}: {m.Content}"));
+
+            // 3️RAG retrieval
+            var embedding = await _openAI.CreateEmbeddingAsync(question);
+            var chunks = await _search.VectorSearchAsync(embedding);
+            var context = string.Join("\n", chunks);
+
+            // 4️Prompt
+                var prompt = $"""
+                You are a helpful AI assistant.
+
+                Conversation History:
+                {historyText}
+
+                Use ONLY the context below.
+                If information is missing, say "Information not available".
+
+                Context:
+                {context}
+
+                Question:
+                {question}
+                """;
+
+            // 5️⃣ Call LLM (NON-streaming)
+            var answer = await _openAI.GenerateAnswerAsync(prompt);
+
+            // 6️⃣ Save assistant message
+            var assistantMessage = new ChatMessageModel
+            {
+                ConversationId = conversationId,
+                UserId = userId,
+                Role = "assistant",
+                Content = answer
+            };
+
+            await _conversationStore.SaveMessageAsync(assistantMessage);
+
+            return assistantMessage;
+        }
         public async Task AskWithHistoryAsync(string question, string conversationId, string userId, Func<string, Task> onToken)
         {
             throw new NotImplementedException();
         }
+
     }
 }

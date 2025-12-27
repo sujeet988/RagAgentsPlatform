@@ -41,22 +41,32 @@ namespace RagAgents.Api.Controllers
             if (string.IsNullOrWhiteSpace(request.Question))
                 return BadRequest("Question is missing");
 
-            //var answer = await _ragService.AskAsync(request.Question);
-            //ChatMessageModel chatMessageModel = new ChatMessageModel();
-            //chatMessageModel.Id = Guid.NewGuid().ToString();
-            //chatMessageModel.Timestamp = DateTime.UtcNow;
-            //chatMessageModel.Content = answer;
-            //chatMessageModel.Role = "assistant";
-            //return Ok(new { chatMessageModel });
+            var answer = await _ragService.AskAsync(request.Question);
+            ChatMessageModel chatMessageModel = new ChatMessageModel();
+            chatMessageModel.Id = Guid.NewGuid().ToString();
+            chatMessageModel.Timestamp = DateTime.UtcNow;
+            chatMessageModel.Content = answer;
+            chatMessageModel.Role = "assistant";
+            return Ok(new { chatMessageModel });
 
-            // Ask with History
-            var answer = await _ragService.AskWithHistoryAsync(request.Question,
-                                request.ConversationId,userId);
+        }
 
-            await _conversationStore.SaveMessageAsync(answer);
+        // POST: api/rag/ask
+        [HttpPost]
+        [Route("askwithhistory")]
+        public async Task<IActionResult> Askwithhistory([FromBody] QuestionRequest request)
+        {
+            var userId = User.GetUserId();          // GUID
+            var email = User.GetUserEmail();       // user@company.com
 
+            if (string.IsNullOrWhiteSpace(userId))
+                return BadRequest("User ID is missing");
+
+            if (string.IsNullOrWhiteSpace(request.Question))
+                return BadRequest("Question is missing");
+
+            var answer = await _ragService.AskWithHistoryNoStreamAsync(request.Question,request.ConversationId,userId);
             return Ok(answer);
-
         }
 
         [HttpGet]
