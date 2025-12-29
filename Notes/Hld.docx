@@ -1,0 +1,115 @@
+﻿HLD
+ ┌────────────────────────┐
+                    │  Client (Web / App)    │
+                    └──────────┬─────────────┘
+                               │
+                      HTTP / WebSocket
+                               │
+                    ┌──────────▼───────────┐
+                    │  RagAgents.Api       │
+                    │  (Chat / Q&A)        │
+                    └──────────┬───────────┘
+                               │
+                ┌──────────────▼──────────────┐
+                │      RagAgents.Core          │
+                │  (RAG + Prompt Orchestration│
+                └──────────────┬──────────────┘
+                               │
+        ┌───────────────┬───────┴────────┬────────────────┐
+        │               │                │                │
+ Azure OpenAI     Azure AI Search    Cosmos DB        SignalR
+ (Chat + Emb)     (Vector + BM25)    (Chat Memory)   (Streaming)
+
+─────────────────────────────────────────────────────────────
+
+        Blob Upload (PDF / Images)
+                  │
+        ┌─────────▼─────────┐
+        │ RagAgents.Functions│
+        │ (Ingestion)        │
+        └─────────┬─────────┘
+                  │
+        ┌─────────▼─────────┐
+        │ RagAgents.Core     │
+        └─────────┬─────────┘
+                  │
+   Document AI → Embeddings → Vector Index
+
+
+----embedding
+
+RagAgents
+│
+├─ RagAgents.Functions        (Azure Functions – Ingestion)
+│   ├─ Functions/
+│   │   └─ PdfBlobIngestFunction.cs
+│   ├─ Program.cs
+│   └─ appsettings.json
+│
+├─ RagAgents.Api              (Chat API)
+│   ├─ Controllers/
+│   │   └─ ChatController.cs
+│   ├─ Hubs/
+│   │   └─ ChatHub.cs         (SignalR)
+│   ├─ Program.cs
+│   └─ appsettings.json
+│
+├─ RagAgents.Core             (Shared Intelligence)
+│   ├─ Interfaces/
+│   │   ├─ IAzureOpenAIService.cs
+│   │   ├─ IAzureSearchService.cs
+│   │   ├─ IPdfIngestService.cs
+│   │   ├─ IRagService.cs
+│   │   └─ IConversationStore.cs
+│   │
+│   ├─ Services/
+│   │   ├─ AzureOpenAIService.cs
+│   │   ├─ AzureSearchService.cs
+│   │   ├─ PdfIngestService.cs
+│   │   ├─ RagService.cs
+│   │   └─ ConversationStore.cs
+│   │
+│   ├─ Models/
+│   │   ├─ ChatMessageModel.cs
+│   │   ├─ Citation.cs
+│   │   └─ QuestionRequest.cs
+│   │
+│   └─ RagCoreExtensions.cs
+│
+└─ RagAgents.sln
+
+---2
+React
+  ↓
+API (Auth + Content Safety + Guardrails)
+  ↓
+RAG (Azure AI Search)
+  ↓
+Azure OpenAI
+
+--Content Safety
+What Azure AI Content Safety does (in practice)
+It detects and scores content for:
+
+Hate
+
+Sexual
+
+Violence
+
+Self-harm
+
+Each category returns a severity level (0–7).
+
+👉 Enterprises usually block at severity ≥ 4
+
+--- 
+WS Role (Amazon / AWS GenAI roles)
+🔹 Translate Azure → AWS (CRITICAL)
+Azure	                AWS
+Entra ID	            Cognito / IAM
+Azure OpenAI	        Bedrock
+Azure AI Search	        OpenSearch
+Content Safety	        Bedrock Guardrails
+Cosmos DB	            DynamoDB
+App Insights	        CloudWatch
