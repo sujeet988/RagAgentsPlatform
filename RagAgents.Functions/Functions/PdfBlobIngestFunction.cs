@@ -20,19 +20,26 @@ public class PdfBlobIngestFunction
     }
 
     [Function(nameof(PdfBlobIngestFunction))]
-    public async Task Run([BlobTrigger("pdfcontainer/{name}", Connection = "StorageConnectiontest")] Stream blobStream, string name)
+    public async Task Run(
+        [BlobTrigger("pdfcontainer/{name}", Connection = "AzureWebJobsStorage")] Stream blobStream, 
+        string name)
     {
-       // using var blobStreamReader = new StreamReader(blobStream);
-       // var content = await blobStreamReader.ReadToEndAsync();
-        _logger.LogInformation("C# Blob trigger function Processed blob\n Name: {name} \n Data: {content}", name, "content");
+        _logger.LogInformation("Blob trigger started: {FileName}", name);
 
-        using var ms = new MemoryStream();
-        await blobStream.CopyToAsync(ms);
-        ms.Position = 0;
+        try
+        {
+            using var ms = new MemoryStream();
+            await blobStream.CopyToAsync(ms);
+            ms.Position = 0;
 
-        await _pdfIngestService.IngestAsync(ms, name);
+            await _pdfIngestService.IngestAsync(ms, name);
 
-        _logger.LogInformation($"Blob {name} ingested successfully");
-       
+            _logger.LogInformation("Blob {FileName} ingested successfully", name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to ingest blob {FileName}", name);
+            throw;
+        }
     }
 }

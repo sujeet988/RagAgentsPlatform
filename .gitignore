@@ -369,3 +369,4 @@ FodyWeavers.xsd
 **/secrets.json
 **/*.secrets.json
 **/local.settings.json
+**/*.local.settings.json

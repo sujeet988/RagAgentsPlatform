@@ -61,9 +61,9 @@ namespace RagAgents.Core.Services
                     });
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
             
         }
