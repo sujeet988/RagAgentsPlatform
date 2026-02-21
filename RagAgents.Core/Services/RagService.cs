@@ -13,13 +13,20 @@ namespace RagAgents.Core.Services
         private readonly IAzureOpenAIService _openAI;
         private readonly IAzureSearchService _search;
         private readonly IConversationStoreInMemory _conversationStore;
-        public RagService(IAzureOpenAIService openAI,IAzureSearchService search, IConversationStoreInMemory conversationStore)
+        private readonly IPromptProvider _promptProvider;
+
+        public RagService(
+            IAzureOpenAIService openAI,
+            IAzureSearchService search, 
+            IConversationStoreInMemory conversationStore,
+            IPromptProvider promptProvider)
         {
             _openAI = openAI;
             _search = search;
             _conversationStore = conversationStore;
-
+            _promptProvider = promptProvider;
         }
+
         public async Task<string> AskAsync(string question)
         {
             var embedding = await _openAI.CreateEmbeddingAsync(question);
@@ -27,16 +34,8 @@ namespace RagAgents.Core.Services
 
             var context = string.Join("\n", chunks);
 
-            var prompt = $"""
-            Answer using ONLY the context below.
-            If information is missing, say "Information not available".
-
-            Context:
-            {context}
-
-            Question:
-            {question}
-            """;
+            // Use prompt from configuration
+            var prompt = _promptProvider.GetSimpleRagPrompt(context, question);
 
             return await _openAI.GenerateAnswerAsync(prompt);
         }
@@ -64,22 +63,8 @@ namespace RagAgents.Core.Services
             var chunks = await _search.VectorSearchAsync(embedding);
             var context = string.Join("\n", chunks);
 
-            // 4️Prompt
-                var prompt = $"""
-                You are a helpful AI assistant.
-
-                Conversation History:
-                {historyText}
-
-                Use ONLY the context below.
-                If information is missing, say "Information not available".
-
-                Context:
-                {context}
-
-                Question:
-                {question}
-                """;
+            // 4️ Use prompt from configuration
+            var prompt = _promptProvider.GetRagWithHistoryPrompt(historyText, context, question);
 
             // 5️⃣ Call LLM (NON-streaming)
             var answer = await _openAI.GenerateAnswerAsync(prompt);

@@ -17,16 +17,17 @@ namespace RagAgents.Core.Services
         private readonly AzureOpenAIClient _client;
         private readonly string _embedDeployment;
         private readonly string _chatDeployment;
-        public AzureOpenAIService(IOptions<AzureOpenAIOptions> options)
-        {
-            var cfg = options.Value;
-            _client = new AzureOpenAIClient(
-                new Uri(cfg.Endpoint),
-                new AzureKeyCredential(cfg.Key));
 
+        // Constructor now accepts the client via DI
+        public AzureOpenAIService(
+            AzureOpenAIClient client,
+            IOptions<AzureOpenAIOptions> options)
+        {
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            
+            var cfg = options.Value;
             _embedDeployment = cfg.EmbeddingDeployment;
             _chatDeployment = cfg.ChatDeployment;
-
         }
         public async Task<float[]> CreateEmbeddingAsync(string text)
         {
@@ -40,9 +41,10 @@ namespace RagAgents.Core.Services
                 return embeddingResult.Value.ToFloats().ToArray();
 
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                // Log the error and rethrow (preserves stack trace)
+                throw;
             }
         }
 

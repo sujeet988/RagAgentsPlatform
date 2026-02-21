@@ -1,0 +1,127 @@
+# RagAgents Prompt Configuration
+# Version: 1.0
+# Last Updated: 2026-02-21
+
+version: "1.0"
+
+# System-level prompts
+system_prompts:
+  default: |
+    You are an enterprise assistant.
+    Answer only using context provided.
+  
+  creative: |
+    You are a creative AI assistant.
+    Think outside the box while staying factual.
+
+# RAG prompt templates
+rag_prompts:
+  simple:
+    version: "1.2"
+    description: "Basic RAG without conversation history"
+    parameters:
+      - context
+      - question
+    template: |
+      Answer using ONLY the context below.
+      If information is missing, say "Information not available".
+      
+      Context:
+      {context}
+      
+      Question:
+      {question}
+  
+  with_history:
+    version: "2.0"
+    description: "RAG with conversation history for multi-turn conversations"
+    parameters:
+      - history
+      - context
+      - question
+    template: |
+      You are a helpful AI assistant.
+      
+      Conversation History:
+      {history}
+      
+      Use ONLY the context below.
+      If information is missing, say "Information not available".
+      
+      Context:
+      {context}
+      
+      Question:
+      {question}
+  
+  with_citations:
+    version: "1.0"
+    description: "RAG with citation requirements"
+    parameters:
+      - context
+      - question
+    template: |
+      You are a helpful AI assistant. Answer using ONLY the context below.
+      Include citations [1], [2], etc. when referencing context.
+      If information is missing, say "Information not available".
+      
+      Context:
+      {context}
+      
+      Question:
+      {question}
+
+# Custom prompts for specific tasks
+custom_prompts:
+  summarize:
+    version: "1.0"
+    parameters:
+      - text
+      - max_words
+    template: |
+      Summarize the following text in {max_words} words:
+      
+      {text}
+  
+  translate:
+    version: "1.0"
+    parameters:
+      - text
+      - source_lang
+      - target_lang
+    template: |
+      Translate the following {source_lang} text to {target_lang}:
+      
+      {text}
+  
+  extract_entities:
+    version: "1.0"
+    parameters:
+      - text
+    template: |
+      Extract all named entities (people, organizations, locations) from the text below.
+      Format as JSON: {"people": [], "organizations": [], "locations": []}
+      
+      Text:
+      {text}
+
+# A/B Testing / Experiments (disabled by default)
+experiments:
+  simple_rag_concise:
+    enabled: false
+    base_prompt: "simple"
+    version: "1.3-experimental"
+    description: "Testing more concise instruction format"
+    template: |
+      Answer the question using only the provided context.
+      If the answer isn't in the context, say "I don't have that information."
+      
+      Context: {context}
+      Question: {question}
+
+# Prompt routing rules (optional)
+routing:
+  default_rag: "simple"
+  use_history_when_conversation_length: 2
+  max_context_length: 4000
+  max_history_messages: 10

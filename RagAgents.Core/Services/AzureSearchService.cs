@@ -20,21 +20,17 @@ namespace RagAgents.Core.Services
     {
         private readonly SearchClient _client;
         private readonly SearchIndexClient _indexClient;
-        private readonly string _indexName ;
-        private readonly string _endPoint;
-        private readonly string _key;
-        public AzureSearchService(IOptions<AzureSearchAIOptions> options) {
-            var cfg = options.Value;
-            _client = new SearchClient(
-                new Uri(cfg.Endpoint),
-                cfg.IndexName,
-                new AzureKeyCredential(cfg.Key));
-            _indexName= cfg.IndexName;
-            _indexClient  = new SearchIndexClient(
-                new Uri(cfg.Endpoint),
-                new AzureKeyCredential(cfg.Key));
+        private readonly string _indexName;
 
-
+        // Constructor now accepts clients via DI
+        public AzureSearchService(
+            SearchClient searchClient,
+            SearchIndexClient indexClient,
+            IOptions<AzureSearchAIOptions> options)
+        {
+            _client = searchClient ?? throw new ArgumentNullException(nameof(searchClient));
+            _indexClient = indexClient ?? throw new ArgumentNullException(nameof(indexClient));
+            _indexName = options.Value.IndexName;
         }
 
         public async Task IndexAsync<T>(T document)
@@ -144,9 +140,9 @@ namespace RagAgents.Core.Services
 
                 await _indexClient.CreateOrUpdateIndexAsync(index);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                throw ex;
+                throw;
             }
 
 
