@@ -3,6 +3,7 @@ using Azure.AI.OpenAI;
 using Azure.Identity;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Indexes;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -74,6 +75,24 @@ namespace RagAgents.Core.Extensions
                 return new SearchIndexClient(endpoint, new DefaultAzureCredential());
             });
 
+            // Register CosmosClient
+            services.AddSingleton<CosmosClient>(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<AzureOpenAIOptions>>().Value.AzureCosmos;
+                var endpoint = options.Endpoint;
+
+                if (isDevelopment && !string.IsNullOrEmpty(options.Key))
+                {
+                    // Development: Use Connection String or Key
+                    return new CosmosClient(endpoint, options.Key);
+                }
+
+                // Production: Use Managed Identity
+                var credential = new DefaultAzureCredential();
+                var clientOptions = new CosmosClientOptions();
+                return new CosmosClient(endpoint, credential, clientOptions);
+            });
+
             return services;
         }
 
@@ -85,6 +104,7 @@ namespace RagAgents.Core.Extensions
             // Register services with Scoped lifetime for better resource management
             services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
             services.AddScoped<IAzureSearchService, AzureSearchService>();
+            services.AddScoped<IJobTrackingService, JobTrackingService>();
             
             // Conversation store and prompt provider as Singleton (stateless)
             services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
