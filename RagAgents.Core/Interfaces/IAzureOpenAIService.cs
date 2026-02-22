@@ -14,7 +14,9 @@ namespace RagAgents.Core.Interfaces
 
         // 🔹 Generate answer using chat deployment
         Task<string> GenerateAnswerAsync(string prompt);
-
-
+        
+        // Model versioning
+        string GetChatModelVersion();
+        string GetEmbeddingModelVersion();
     }
 }

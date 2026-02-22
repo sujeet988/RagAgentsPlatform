@@ -9,6 +9,23 @@ namespace RagAgents.Core.Models
         public RagPromptTemplates RagPrompts { get; set; } = new();
         
         public Dictionary<string, string> CustomPrompts { get; set; } = new();
+        
+        // Prompt Versioning
+        public string CurrentVersion { get; set; } = "v1.0";
+        public bool EnableVersionTracking { get; set; } = true;
+        public Dictionary<string, PromptVersion> Versions { get; set; } = new();
+    }
+    
+    public class PromptVersion
+    {
+        public string Version { get; set; } = default!;
+        public string SystemPrompt { get; set; } = default!;
+        public RagPromptTemplates RagPrompts { get; set; } = new();
+        public Dictionary<string, string> CustomPrompts { get; set; } = new();
+        public DateTime CreatedDate { get; set; }
+        public string CreatedBy { get; set; } = "system";
+        public bool IsActive { get; set; } = true;
+        public string Description { get; set; } = string.Empty;
     }
 
     public class RagPromptTemplates

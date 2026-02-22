@@ -17,6 +17,9 @@ namespace RagAgents.Core.Services
         private readonly AzureOpenAIClient _client;
         private readonly string _embedDeployment;
         private readonly string _chatDeployment;
+        private readonly string _chatModelVersion;
+        private readonly string _embeddingModelVersion;
+        private readonly bool _enableVersionTracking;
 
         // Constructor now accepts the client via DI
         public AzureOpenAIService(
@@ -28,7 +31,13 @@ namespace RagAgents.Core.Services
             var cfg = options.Value;
             _embedDeployment = cfg.EmbeddingDeployment;
             _chatDeployment = cfg.ChatDeployment;
+            _chatModelVersion = cfg.ChatModelVersion;
+            _embeddingModelVersion = cfg.EmbeddingModelVersion;
+            _enableVersionTracking = cfg.Versioning.EnableVersionTracking;
         }
+        
+        public string GetChatModelVersion() => _chatModelVersion;
+        public string GetEmbeddingModelVersion() => _embeddingModelVersion;
         public async Task<float[]> CreateEmbeddingAsync(string text)
         {
             try
@@ -36,6 +45,13 @@ namespace RagAgents.Core.Services
                 var embeddingClient = _client.GetEmbeddingClient(_embedDeployment);
 
                 var embeddingResult = await embeddingClient.GenerateEmbeddingAsync(text);
+
+                // Track model version in telemetry if enabled
+                if (_enableVersionTracking)
+                {
+                    // Version tracking can be logged via Application Insights custom properties
+                    // This allows tracking which model version was used for each embedding
+                }
 
                 // Access the embedding from the Value property, then call ToFloats()
                 return embeddingResult.Value.ToFloats().ToArray();
@@ -62,6 +78,14 @@ namespace RagAgents.Core.Services
 
             // Call the Azure OpenAI chat completion API
             var response = await chatClient.CompleteChatAsync(messages);
+            
+            // Track model version and usage
+            if (_enableVersionTracking)
+            {
+                // Version: _chatModelVersion
+                // Usage: response.Value.Usage
+                // Model: response.Value.Model
+            }
 
             // Read the generated text
             return response.Value.Content.LastOrDefault()?.Text ?? string.Empty;

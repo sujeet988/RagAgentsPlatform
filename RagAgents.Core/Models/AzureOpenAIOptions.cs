@@ -13,6 +13,28 @@ namespace RagAgents.Core.Models
         public string EmbeddingDeployment { get; set; } = default!;
         public string ChatDeployment { get; set; } = default!;
         public AzureCosmosOptions AzureCosmos { get; set; } = new();
+        
+        // Model Versioning
+        public string ChatModelVersion { get; set; } = "gpt-4-0613";
+        public string EmbeddingModelVersion { get; set; } = "text-embedding-3-large";
+        public ModelVersioningOptions Versioning { get; set; } = new();
+    }
+    
+    public class ModelVersioningOptions
+    {
+        public bool EnableVersionTracking { get; set; } = true;
+        public bool LogModelMetrics { get; set; } = true;
+        public Dictionary<string, ModelVersion> AvailableVersions { get; set; } = new();
+    }
+    
+    public class ModelVersion
+    {
+        public string Name { get; set; } = default!;
+        public string DeploymentName { get; set; } = default!;
+        public string Version { get; set; } = default!;
+        public int MaxTokens { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime? ActivatedDate { get; set; }
     }
     public class AzureSearchAIOptions
     {

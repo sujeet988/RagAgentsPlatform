@@ -8,14 +8,29 @@ namespace RagAgents.Core.Services
     public class PromptProvider : IPromptProvider
     {
         private readonly PromptOptions _options;
+        private readonly string _currentVersion;
 
         public PromptProvider(IOptions<PromptOptions> options)
         {
             _options = options.Value;
+            _currentVersion = _options.CurrentVersion;
+        }
+        
+        public string GetCurrentVersion() => _currentVersion;
+        
+        public PromptVersion? GetVersionedPrompts(string version)
+        {
+            return _options.Versions.TryGetValue(version, out var promptVersion) 
+                ? promptVersion 
+                : null;
         }
 
-        public string GetSystemPrompt()
+        public string GetSystemPrompt(string? version = null)
         {
+            if (!string.IsNullOrEmpty(version) && _options.Versions.TryGetValue(version, out var promptVersion))
+            {
+                return promptVersion.SystemPrompt;
+            }
             return _options.SystemPrompt;
         }
 

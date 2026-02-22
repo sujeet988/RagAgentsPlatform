@@ -105,6 +105,7 @@ namespace RagAgents.Core.Extensions
             services.AddScoped<IAzureOpenAIService, AzureOpenAIService>();
             services.AddScoped<IAzureSearchService, AzureSearchService>();
             services.AddScoped<IJobTrackingService, JobTrackingService>();
+            services.AddScoped<IVersionTrackingService, VersionTrackingService>();
             
             // Conversation store and prompt provider as Singleton (stateless)
             services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
