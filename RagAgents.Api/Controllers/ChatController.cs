@@ -12,7 +12,7 @@ namespace RagAgents.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = "RagAdmin")]
+    //[Authorize(Policy = "RagAdmin")]
     public class ChatController : ControllerBase
     {
         private readonly IRagService _ragService;
@@ -54,6 +54,7 @@ namespace RagAgents.Api.Controllers
         // POST: api/rag/ask
         [HttpPost]
         [Route("askwithhistory")]
+        [AllowAnonymous]
         public async Task<IActionResult> Askwithhistory([FromBody] QuestionRequest request)
         {
             var userId = User.GetUserId();          // GUID
