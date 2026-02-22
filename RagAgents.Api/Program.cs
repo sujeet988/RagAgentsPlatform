@@ -19,6 +19,9 @@ namespace RagAgents.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Load additional configuration files
+            builder.Configuration.AddJsonFile("appsettings.Versioning.json", optional: true, reloadOnChange: true);
+
             // add http clinet
             builder.Services.AddHttpClient();
 
@@ -41,6 +44,9 @@ namespace RagAgents.Api
             builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
             builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
             builder.Services.Configure<PromptOptions>(builder.Configuration.GetSection("PromptOptions"));
+
+            // Add Application Insights
+            builder.Services.AddApplicationInsightsTelemetry();
 
             // Configure OpenTelemetry
             var serviceName = builder.Configuration["OTEL_SERVICE_NAME"] ?? "RagAgents.Api";
