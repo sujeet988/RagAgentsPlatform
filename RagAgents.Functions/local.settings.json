@@ -3,16 +3,16 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "StorageConnectiontest": "UseDevelopmentStorage=true",
+    "StorageConnectiontest": "",
 
     "AzureOpenAI:Endpoint": "",
     "AzureOpenAI:Key": "",
-    "AzureOpenAI:EmbeddingDeployment": "",
-    "AzureOpenAI:ChatDeployment": "",
+    "AzureOpenAI:EmbeddingDeployment": "text-embedding-3-large-embedding",
+    "AzureOpenAI:ChatDeployment": "gpt-5.2-chat-chatmodel",
 
-    "AzureSearch:Endpoint": "",
+    "AzureSearch:Endpoint": "https://azureaisearchdemosujeet.search.windows.net",
     "AzureSearch:Key": "",
-    "AzureSearch:IndexName": "",
+    "AzureSearch:IndexName": "documents-index",
 
     "DocumentAI:Endpoint": "",
     "DocumentAI:Key": ""
