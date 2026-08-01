@@ -14,7 +14,7 @@
     "AzureSearch:Key": "",
     "AzureSearch:IndexName": "documents-index",
 
-    "DocumentAI:Endpoint": "",
+    "DocumentAI:Endpoint": "https://azureaidocuementintelligencedemo.cognitiveservices.azure.com/",
     "DocumentAI:Key": ""
   }
 }
