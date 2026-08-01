@@ -2,7 +2,13 @@
   "profiles": {
     "RagAgents.Functions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7110"
+      "commandLineArgs": "--port 7110",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "StorageConnectiontest": "UseDevelopmentStorage=true",
+        "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
+      }
     },
     "Container (Dockerfile)": {
       "commandName": "Docker",
