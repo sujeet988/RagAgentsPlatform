@@ -3,6 +3,18 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "StorageConnectiontest": ""
+    "StorageConnectiontest": "UseDevelopmentStorage=true",
+
+    "AzureOpenAI:Endpoint": "",
+    "AzureOpenAI:Key": "",
+    "AzureOpenAI:EmbeddingDeployment": "",
+    "AzureOpenAI:ChatDeployment": "",
+
+    "AzureSearch:Endpoint": "",
+    "AzureSearch:Key": "",
+    "AzureSearch:IndexName": "",
+
+    "DocumentAI:Endpoint": "",
+    "DocumentAI:Key": ""
   }
 }
