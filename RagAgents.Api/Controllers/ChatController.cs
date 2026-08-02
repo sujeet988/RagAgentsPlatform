@@ -53,6 +53,25 @@ namespace RagAgents.Api.Controllers
 
         // POST: api/rag/ask
         [HttpPost]
+        [Route("askwithnoauth")]
+        public async Task<IActionResult> askwithnoauth([FromBody] QuestionRequest request)
+        {
+
+            if (string.IsNullOrWhiteSpace(request.Question))
+                return BadRequest("Question is missing");
+
+            var answer = await _ragService.AskAsync(request.Question);
+            ChatMessageModel chatMessageModel = new ChatMessageModel();
+            chatMessageModel.Id = Guid.NewGuid().ToString();
+            chatMessageModel.Timestamp = DateTime.UtcNow;
+            chatMessageModel.Content = answer;
+            chatMessageModel.Role = "assistant";
+            return Ok(new { chatMessageModel });
+
+        }
+
+        // POST: api/rag/ask
+        [HttpPost]
         [Route("askwithhistory")]
         public async Task<IActionResult> Askwithhistory([FromBody] QuestionRequest request)
         {
