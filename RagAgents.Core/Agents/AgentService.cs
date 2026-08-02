@@ -1,7 +1,9 @@
+using Microsoft.Extensions.Logging;
 using RagAgents.Core.Agents;
-using RagAgents.Core.Interfaces;
 using RagAgents.Core.Helpers;
+using RagAgents.Core.Interfaces;
 using System.Text.Json;
+using System.Linq;
 
 namespace RagAgents.Core.Agents
 {
@@ -10,19 +12,39 @@ namespace RagAgents.Core.Agents
     {
         private readonly IAzureOpenAIService _openAI;
         private readonly IEnumerable<ITool> _tools;
+        private readonly ILogger<AgentService> _logger;
+        private readonly Dictionary<string, string> _aliases;
+        private readonly HashSet<string> _allowedTools;
+        private readonly int _maxSteps = 10;
 
-        public AgentService(IAzureOpenAIService openAI, IEnumerable<ITool> tools)
+        public AgentService(IAzureOpenAIService openAI, IEnumerable<ITool> tools, ILogger<AgentService> logger)
         {
             _openAI = openAI;
             _tools = tools;
+            _logger = logger;
+
+            // Build allowed tools set from registered tools
+            _allowedTools = new HashSet<string>(_tools.Select(t => t.Name), StringComparer.OrdinalIgnoreCase);
+
+            // Common alias mapping to canonical tool names
+            _aliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "searchtool", "Search" }, { "search", "Search" }, { "find", "Search" },
+                { "pdfingest", "PdfIngest" }, { "pdf_ingest", "PdfIngest" }, { "ingestpdf", "PdfIngest" }, { "pdf", "PdfIngest" }
+            };
         }
 
         public async Task<string> RunAsync(string goal, string conversationId = null)
         {
-            // 1) Ask LLM for a simple JSON plan
-            var planPrompt = $"Create a JSON array of steps to achieve the goal: {goal}. " +
-                             "Each step must be an object with 'tool' and 'input' properties. " +
-                             "Return ONLY valid JSON.";
+            // 1) Ask LLM for a simple JSON plan. Include allowed tools in the prompt so LLM uses exact names.
+            var allowedList = string.Join(", ", _allowedTools);
+            var planPrompt =
+                "Create a JSON array of steps to achieve the goal: " + goal + Environment.NewLine +
+                "Each step MUST be an object with two properties: 'tool' and 'input'." + Environment.NewLine +
+                "Only use the following tools (case sensitive names): " + allowedList + "." + Environment.NewLine +
+                "Return ONLY valid JSON array, for example: [{\"tool\":\"Search\",\"input\":\"...\"}]";
+
+            _logger.LogInformation("Agent plan prompt: {prompt}", planPrompt);
 
             var planJson = await _openAI.GenerateAnswerAsync(planPrompt);
 
@@ -34,30 +56,65 @@ namespace RagAgents.Core.Agents
                     PropertyNameCaseInsensitive = true
                 }) ?? Array.Empty<AgentStep>();
             }
-            catch
+            catch (Exception ex)
             {
-                // If LLM didn't return JSON, fallback to a single search step
+                _logger.LogWarning(ex, "Failed to parse plan JSON from LLM. Falling back to single Search step.");
                 steps = new[] { new AgentStep("Search", goal) };
             }
 
-            // 2) Execute steps sequentially
-            string lastResult = string.Empty;
-            foreach (var step in steps)
+            if (steps.Length > _maxSteps)
             {
-                var tool = _tools.SingleOrDefault(t => t.Name.Equals(step.Tool, StringComparison.OrdinalIgnoreCase));
-                if (tool == null)
+                _logger.LogWarning("Plan contained {count} steps, trimming to {max}", steps.Length, _maxSteps);
+                steps = steps.Take(_maxSteps).ToArray();
+            }
+
+            string lastResult = string.Empty;
+
+            foreach (var rawStep in steps)
+            {
+                if (string.IsNullOrWhiteSpace(rawStep?.Tool))
                 {
-                    lastResult = $"Unknown tool: {step.Tool}";
+                    _logger.LogWarning("Skipping step with empty tool");
                     continue;
                 }
 
+                // Normalize tool name via alias or direct match
+                var toolKey = rawStep.Tool.Trim();
+                var canonical = toolKey;
+                if (_aliases.TryGetValue(toolKey, out var mapped))
+                    canonical = mapped;
+                else if (_allowedTools.Contains(toolKey, StringComparer.OrdinalIgnoreCase))
+                {
+                    // find canonical casing from registered tools
+                    var found = _tools.FirstOrDefault(t => t.Name.Equals(toolKey, StringComparison.OrdinalIgnoreCase));
+                    if (found != null) canonical = found.Name;
+                }
+
+                if (!_allowedTools.Contains(canonical, StringComparer.OrdinalIgnoreCase))
+                {
+                    lastResult = $"Unknown or disallowed tool: {rawStep.Tool}";
+                    _logger.LogWarning("{msg}", lastResult);
+                    continue;
+                }
+
+                var tool = _tools.SingleOrDefault(t => t.Name.Equals(canonical, StringComparison.OrdinalIgnoreCase));
+                if (tool == null)
+                {
+                    lastResult = $"Tool not found after normalization: {canonical}";
+                    _logger.LogWarning("{msg}", lastResult);
+                    continue;
+                }
+
+                _logger.LogInformation("Executing tool {tool} with input: {input}", tool.Name, rawStep.Input);
                 try
                 {
-                    lastResult = await tool.RunAsync(step.Input);
+                    lastResult = await tool.RunAsync(rawStep.Input ?? string.Empty);
+                    _logger.LogInformation("Tool {tool} completed. Result length: {len}", tool.Name, lastResult?.Length ?? 0);
                 }
                 catch (Exception ex)
                 {
-                    lastResult = $"Tool {step.Tool} failed: {ex.Message}";
+                    lastResult = $"Tool {tool.Name} failed: {ex.Message}";
+                    _logger.LogError(ex, "Tool {tool} execution failed", tool.Name);
                 }
             }
 
