@@ -23,12 +23,6 @@ namespace RagAgents.Api
                 .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-            // Ensure the JWT middleware reads roles from the "roles" claim
-            builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
-            {
-                options.TokenValidationParameters.RoleClaimType = "roles";
-            });
-
             builder.Services.AddAuthorization(options =>
             {
                 options.AddPolicy("RagUser", policy => policy.RequireRole("RagUser"));
@@ -39,7 +33,7 @@ namespace RagAgents.Api
             # region Load Configuration
             builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
             // Use the same section name used in local.settings.json / Functions project
-            builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearch"));
+            builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
             #endregion
             #region Add/register services to the container.
             builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
