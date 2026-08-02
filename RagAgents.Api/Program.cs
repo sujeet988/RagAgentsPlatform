@@ -16,8 +16,7 @@ namespace RagAgents.Api
 
             // add http clinet
             builder.Services.AddHttpClient();
-
-            // Add Authentication and authrization
+            #region  Add Authentication and authrization
             builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApi(
@@ -31,16 +30,18 @@ namespace RagAgents.Api
                 options.AddPolicy("RagAdmin", policy =>
                     policy.RequireRole("RagAdmin"));
             });
+            #endregion
 
-            // Load Configuration
+            # region Load Configuration
             builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
             builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
-
-            // Add services to the container.
+            #endregion
+            #region Add/register services to the container.
             builder.Services.AddSingleton<IAzureOpenAIService,AzureOpenAIService>();
             builder.Services.AddSingleton<IAzureSearchService,AzureSearchService>();
             builder.Services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
             builder.Services.TryAddTransient<IRagService, RagService>();
+            #endregion
 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
