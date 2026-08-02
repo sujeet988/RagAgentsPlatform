@@ -52,7 +52,8 @@ namespace RagAgents.Api
             });
             builder.Services.AddScoped<RagAgents.Core.Agents.ITool, RagAgents.Core.Agents.PdfIngestTool>(sp =>
             {
-                var ingest = sp.GetRequiredService<IPdfIngestService>();
+                // Resolve IPdfIngestService if available, otherwise use NoOpPdfIngestService
+                var ingest = sp.GetService<IPdfIngestService>() ?? new RagAgents.Core.Services.NoOpPdfIngestService();
                 return new RagAgents.Core.Agents.PdfIngestTool(ingest);
             });
             #endregion
