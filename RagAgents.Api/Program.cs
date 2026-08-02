@@ -14,33 +14,39 @@ namespace RagAgents.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // add http clinet
+            // add http client
             builder.Services.AddHttpClient();
-            #region  Add Authentication and authrization
+
+            #region  Add Authentication and authorization
+            // Configure Microsoft Identity Web API (uses AzureAd section)
             builder.Services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApi(
-             builder.Configuration.GetSection("AzureAd"));
+                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
+
+            // Ensure the JWT middleware reads roles from the "roles" claim
+            builder.Services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
+            {
+                options.TokenValidationParameters.RoleClaimType = "roles";
+            });
 
             builder.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("RagUser", policy =>
-                    policy.RequireRole("RagUser"));
-
-                options.AddPolicy("RagAdmin", policy =>
-                    policy.RequireRole("RagAdmin"));
+                options.AddPolicy("RagUser", policy => policy.RequireRole("RagUser"));
+                options.AddPolicy("RagAdmin", policy => policy.RequireRole("RagAdmin"));
             });
             #endregion
 
             # region Load Configuration
             builder.Services.Configure<AzureOpenAIOptions>(builder.Configuration.GetSection("AzureOpenAI"));
-            builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
+            // Use the same section name used in local.settings.json / Functions project
+            builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearch"));
             #endregion
             #region Add/register services to the container.
-            builder.Services.AddSingleton<IAzureOpenAIService,AzureOpenAIService>();
-            builder.Services.AddSingleton<IAzureSearchService,AzureSearchService>();
+            builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
+            builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
             builder.Services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
-            builder.Services.TryAddTransient<IRagService, RagService>();
+            // RagService can be scoped per-request
+            builder.Services.AddScoped<IRagService, RagService>();
             #endregion
 
             builder.Services.AddControllers();
