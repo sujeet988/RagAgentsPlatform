@@ -1,5 +1,6 @@
 ﻿using RagAgents.Core.Interfaces;
 using RagAgents.Core.Models;
+using RagAgents.Core.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,16 +28,7 @@ namespace RagAgents.Core.Services
 
             var context = string.Join("\n", chunks);
 
-            var prompt = $"""
-            Answer using ONLY the context below.
-            If information is missing, say "Information not available".
-
-            Context:
-            {context}
-
-            Question:
-            {question}
-            """;
+            var prompt = PromptTemplates.AnswerWithContext(context, question);
 
             return await _openAI.GenerateAnswerAsync(prompt);
         }
@@ -65,21 +57,7 @@ namespace RagAgents.Core.Services
             var context = string.Join("\n", chunks);
 
             // 4️Prompt
-                var prompt = $"""
-                You are a helpful AI assistant.
-
-                Conversation History:
-                {historyText}
-
-                Use ONLY the context below.
-                If information is missing, say "Information not available".
-
-                Context:
-                {context}
-
-                Question:
-                {question}
-                """;
+                var prompt = PromptTemplates.AnswerWithHistory(historyText, context, question);
 
             // 5️⃣ Call LLM (NON-streaming)
             var answer = await _openAI.GenerateAnswerAsync(prompt);
