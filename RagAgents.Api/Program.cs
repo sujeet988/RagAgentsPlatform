@@ -50,6 +50,11 @@ namespace RagAgents.Api
                 var openAI = sp.GetRequiredService<IAzureOpenAIService>();
                 return new RagAgents.Core.Agents.SearchTool(search, openAI);
             });
+            builder.Services.AddScoped<RagAgents.Core.Agents.ITool, RagAgents.Core.Agents.PdfIngestTool>(sp =>
+            {
+                var ingest = sp.GetRequiredService<IPdfIngestService>();
+                return new RagAgents.Core.Agents.PdfIngestTool(ingest);
+            });
             #endregion
 
             builder.Services.AddControllers();
