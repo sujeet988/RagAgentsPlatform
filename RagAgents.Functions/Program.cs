@@ -49,6 +49,9 @@ builder.Services.AddSingleton<IPdfIngestService>(sp =>
     return new PdfIngestService(docClient, openAI, search);
 });
 
+// Register function-level facade
+builder.Services.AddScoped<RagAgents.Functions.Services.IFunctionIngestService, RagAgents.Functions.Services.FunctionIngestService>();
+
 
 // Register DocumentAnalysisClient for Form Recognizer
 builder.Services.AddSingleton(sp =>
