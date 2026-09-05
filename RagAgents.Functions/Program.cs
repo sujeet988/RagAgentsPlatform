@@ -40,13 +40,13 @@ var result = config["DocumentAI:Endpoint"];
 builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
 builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
 // Register PdfIngestService with the DocumentAnalysisClient injected
-builder.Services.AddSingleton<IPdfIngestService>(sp =>
+builder.Services.AddSingleton<IDocumentIngestService>(sp =>
 {
     var docClient = sp.GetRequiredService<DocumentAnalysisClient>();
     var openAI = sp.GetRequiredService<IAzureOpenAIService>();
     var search = sp.GetRequiredService<IAzureSearchService>();
 
-    return new PdfIngestService(docClient, openAI, search);
+    return new DocumentIngestService(docClient, openAI, search);
 });
 
 // Register function-level facade

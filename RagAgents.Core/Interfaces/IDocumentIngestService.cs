@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Interfaces
 {
-    public interface IPdfIngestService
+    public interface IDocumentIngestService
     {
         // Ingest PDF -> extract text -> split -> generate embeddings -> index
         Task IngestAsync(Stream pdf, string fileName);

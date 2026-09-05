@@ -7,7 +7,7 @@ namespace RagAgents.Core.Services
     /// <summary>
     /// Fallback no-op PDF ingest service for environments where Document AI is not configured.
     /// </summary>
-    public class NoOpPdfIngestService : IPdfIngestService
+    public class NoOpPdfIngestService : IDocumentIngestService
     {
         public Task IngestAsync(Stream pdf, string fileName)
         {

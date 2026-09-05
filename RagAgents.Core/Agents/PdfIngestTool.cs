@@ -1,4 +1,5 @@
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Services;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -12,10 +13,10 @@ namespace RagAgents.Core.Agents
     /// </summary>
     public class PdfIngestTool : ITool
     {
-        private readonly IPdfIngestService _ingest;
+        private readonly IDocumentIngestService _ingest;
         public string Name => "PdfIngest";
 
-        public PdfIngestTool(IPdfIngestService ingest)
+        public PdfIngestTool(IDocumentIngestService ingest)
         {
             _ingest = ingest;
         }

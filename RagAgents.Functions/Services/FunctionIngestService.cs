@@ -7,9 +7,9 @@ namespace RagAgents.Functions.Services
 {
     public class FunctionIngestService : IFunctionIngestService
     {
-        private readonly IPdfIngestService _pdfIngestService;
+        private readonly IDocumentIngestService _pdfIngestService;
 
-        public FunctionIngestService(IPdfIngestService pdfIngestService)
+        public FunctionIngestService(IDocumentIngestService pdfIngestService)
         {
             _pdfIngestService = pdfIngestService;
         }
