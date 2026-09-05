@@ -9,18 +9,18 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Functions.Functions;
 
-public class PdfBlobIngestFunction
+public class DocumentIngestFunction
 {
     private readonly IFunctionIngestService  _functionIngestService;
-    private readonly ILogger<PdfBlobIngestFunction> _logger;
+    private readonly ILogger<DocumentIngestFunction> _logger;
 
-    public PdfBlobIngestFunction(IFunctionIngestService functionIngestService, ILogger<PdfBlobIngestFunction> logger)
+    public DocumentIngestFunction(IFunctionIngestService functionIngestService, ILogger<DocumentIngestFunction> logger)
     {
         _functionIngestService = functionIngestService;
         _logger = logger;
     }
 
-    [Function(nameof(PdfBlobIngestFunction))]
+    [Function(nameof(DocumentIngestFunction))]
     public async Task Run([BlobTrigger("pdfcontainer/{name}", Connection = "StorageConnectiontest")] Stream blobStream, string name)
     {
        // using var blobStreamReader = new StreamReader(blobStream);
