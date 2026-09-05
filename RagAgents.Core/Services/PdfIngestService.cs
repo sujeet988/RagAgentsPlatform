@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Azure.AI.FormRecognizer.DocumentAnalysis;
+using RagAgents.Core.Helpers;
 using RagAgents.Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -40,7 +41,7 @@ namespace RagAgents.Core.Services
                         .Select(l => l.Content));
 
                 // 3️⃣ Split text into manageable chunks
-                var chunks = SplitText(text, 800, 100);
+                var chunks = ChunkingHelper.SplitTextByOverLap(text, 800, 100);
 
                 // First Check index exists or not in azure ai seacch if not  it will create index
                 await _search.CreateIndexIfNotExistsAsync();
@@ -68,12 +69,7 @@ namespace RagAgents.Core.Services
             
         }
 
-        // Helper: split long text into chunks with overlap
-        private static IEnumerable<string> SplitText(string text, int size, int overlap)
-        {
-            for (int i = 0; i < text.Length; i += size - overlap)
-                yield return text.Substring(i, Math.Min(size, text.Length - i));
-        }
+       
     }
     
 }
