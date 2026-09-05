@@ -12,15 +12,14 @@ namespace RagAgents.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Policy = "RagAdmin")]
+    //[Authorize(Policy = "RagAdmin")]
     public class ChatController : ControllerBase
     {
-        private readonly IRagService _ragService;
-        private readonly IConversationStoreInMemory _conversationStore;
-        public ChatController(IRagService ragService, IConversationStoreInMemory conversationStore)
+        private readonly RagAgents.Api.Services.IChatService _chatService;
+
+        public ChatController(RagAgents.Api.Services.IChatService chatService)
         {
-            _ragService = ragService;
-            _conversationStore = conversationStore;
+            _chatService = chatService;
         }
 
         // POST: api/rag/ask
@@ -28,26 +27,10 @@ namespace RagAgents.Api.Controllers
         [Route("ask")]
         public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
         {
-            var userId = User.GetUserId();          // GUID
-            var email = User.GetUserEmail();       // user@company.com
-
-            if (string.IsNullOrWhiteSpace(userId))
-                return BadRequest("User ID is missing");
-
-            // get history of data 
-            var history = await _conversationStore.GetHistoryAsync(
-                                request.ConversationId, userId, 10);
-
-            if (string.IsNullOrWhiteSpace(request.Question))
-                return BadRequest("Question is missing");
-
-            var answer = await _ragService.AskAsync(request.Question);
-            ChatMessageModel chatMessageModel = new ChatMessageModel();
-            chatMessageModel.Id = Guid.NewGuid().ToString();
-            chatMessageModel.Timestamp = DateTime.UtcNow;
-            chatMessageModel.Content = answer;
-            chatMessageModel.Role = "assistant";
-            return Ok(new { chatMessageModel });
+            var result = await _chatService.AskAsync(request, User);
+            if (result == null)
+                return BadRequest("Unable to process request or user missing");
+            return Ok(new { chatMessageModel = result });
 
         }
 
@@ -57,16 +40,10 @@ namespace RagAgents.Api.Controllers
         public async Task<IActionResult> askwithnoauth([FromBody] QuestionRequest request)
         {
 
-            if (string.IsNullOrWhiteSpace(request.Question))
+            var result = await _chatService.AskWithoutAuthAsync(request);
+            if (result == null)
                 return BadRequest("Question is missing");
-
-            var answer = await _ragService.AskAsync(request.Question);
-            ChatMessageModel chatMessageModel = new ChatMessageModel();
-            chatMessageModel.Id = Guid.NewGuid().ToString();
-            chatMessageModel.Timestamp = DateTime.UtcNow;
-            chatMessageModel.Content = answer;
-            chatMessageModel.Role = "assistant";
-            return Ok(new { chatMessageModel });
+            return Ok(new { chatMessageModel = result });
 
         }
 
@@ -75,32 +52,18 @@ namespace RagAgents.Api.Controllers
         [Route("askwithhistory")]
         public async Task<IActionResult> Askwithhistory([FromBody] QuestionRequest request)
         {
-            var userId = User.GetUserId();          // GUID
-            var email = User.GetUserEmail();       // user@company.com
-
-            if (string.IsNullOrWhiteSpace(userId))
-                return BadRequest("User ID is missing");
-
-            if (string.IsNullOrWhiteSpace(request.Question))
-                return BadRequest("Question is missing");
-
-            var answer = await _ragService.AskWithHistoryNoStreamAsync(request.Question, request.ConversationId, userId);
-            return Ok(answer);
+            var result = await _chatService.AskWithHistoryAsync(request, User);
+            if (result == null)
+                return BadRequest("Unable to process request or user missing");
+            return Ok(result);
         }
 
         [HttpGet("history/{conversationId}")]
         public async Task<IActionResult> History(string conversationId)
         {
-            var userId = User.GetUserId();
-
-            if (string.IsNullOrWhiteSpace(userId))
+            var history = await _chatService.GetHistoryAsync(conversationId, User);
+            if (history == null)
                 return Unauthorized();
-
-            var history = await _conversationStore.GetHistoryAsync(
-                conversationId,
-                userId,
-                maxMessages: 50);
-
             return Ok(history);
         }
 

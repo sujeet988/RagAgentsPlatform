@@ -41,6 +41,7 @@ namespace RagAgents.Api
             builder.Services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
             // RagService can be scoped per-request
             builder.Services.AddScoped<IRagService, RagService>();
+            builder.Services.AddScoped<RagAgents.Api.Services.IChatService, RagAgents.Api.Services.ChatService>();
 
             // Register agent and tools
             builder.Services.AddScoped<RagAgents.Core.Agents.IAgent, RagAgents.Core.Agents.AgentService>();
