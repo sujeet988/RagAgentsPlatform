@@ -37,14 +37,14 @@ var config = builder.Configuration;
 var result = config["DocumentAI:Endpoint"];
 
 //ADD YOUR SERVICES HERE 
-builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
-builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
+builder.Services.AddSingleton<IOpenAIEmbeddingService, AzureOpenAIEmbeddingService>();
+builder.Services.AddSingleton<ISearchIndexer, AzureSearchSearchIndexerService>();
 // Register PdfIngestService with the DocumentAnalysisClient injected
 builder.Services.AddSingleton<IDocumentIngestService>(sp =>
 {
     var documenttextextextractor = sp.GetRequiredService<IDocumentTextExtractor>();
-    var openAI = sp.GetRequiredService<IAzureOpenAIService>();
-    var search = sp.GetRequiredService<IAzureSearchService>();
+    var openAI = sp.GetRequiredService<IOpenAIEmbeddingService>();
+    var search = sp.GetRequiredService<ISearchIndexer>();
 
     return new DocumentIngestService(documenttextextextractor, openAI, search);
 });

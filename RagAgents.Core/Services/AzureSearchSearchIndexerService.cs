@@ -16,14 +16,14 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Services
 {
-    public class AzureSearchService: IAzureSearchService
+    public class AzureSearchSearchIndexerService : ISearchIndexer
     {
         private readonly SearchClient _client;
         private readonly SearchIndexClient _indexClient;
         private readonly string _indexName ;
         private readonly string _endPoint;
         private readonly string _key;
-        public AzureSearchService(IOptions<AzureSearchAIOptions> options) {
+        public AzureSearchSearchIndexerService(IOptions<AzureSearchAIOptions> options) {
             var cfg = options.Value;
             _client = new SearchClient(
                 new Uri(cfg.Endpoint),

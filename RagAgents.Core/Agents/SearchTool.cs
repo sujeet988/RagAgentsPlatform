@@ -4,20 +4,20 @@ namespace RagAgents.Core.Agents
 {
     public class SearchTool : ITool
     {
-        private readonly IAzureSearchService _search;
-        private readonly IAzureOpenAIService _openAI;
+        private readonly ISearchIndexer _search;
+        private readonly IOpenAIEmbeddingService _openAIEmbeddingService;
         public string Name => "Search";
 
-        public SearchTool(IAzureSearchService search, IAzureOpenAIService openAI)
+        public SearchTool(ISearchIndexer search, IOpenAIEmbeddingService openAIEmbeddingService)
         {
             _search = search;
-            _openAI = openAI;
+            _openAIEmbeddingService = openAIEmbeddingService;
         }
 
         public async Task<string> RunAsync(string input)
         {
             // Create embedding from the input text using the OpenAI service
-            var embedding = await _openAI.CreateEmbeddingAsync(input);
+            var embedding = await _openAIEmbeddingService.CreateEmbeddingAsync(input);
 
             // Perform vector search using the generated embedding
             var chunks = await _search.VectorSearchAsync(embedding);

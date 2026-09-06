@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace RagAgents.Core.Services
 {
-    public class AzureOpenAIService : IAzureOpenAIService
+    public class AzureOpenAIEmbeddingService : IOpenAIEmbeddingService
     {
         private readonly AzureOpenAIClient _client;
         private readonly string _embedDeployment;
         private readonly string _chatDeployment;
-        public AzureOpenAIService(IOptions<AzureOpenAIOptions> options)
+        public AzureOpenAIEmbeddingService(IOptions<AzureOpenAIOptions> options)
         {
             var cfg = options.Value;
             _client = new AzureOpenAIClient(
@@ -28,7 +28,7 @@ namespace RagAgents.Core.Services
             _chatDeployment = cfg.ChatDeployment;
 
         }
-        public async Task<float[]> CreateEmbeddingAsync(string text)
+        public async Task<float[]> CreateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -46,7 +46,12 @@ namespace RagAgents.Core.Services
             }
         }
 
-        public async Task<string> GenerateAnswerAsync(string prompt)
+        public Task<IReadOnlyList<float[]>> CreateEmbeddingsBatchAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<string> GenerateAnswerAsync(string prompt, CancellationToken cancellationToken = default)
         {
             // Get chat client for your Azure OpenAI deployment
             var chatClient = _client.GetChatClient(_chatDeployment);
@@ -65,7 +70,9 @@ namespace RagAgents.Core.Services
             return response.Value.Content.LastOrDefault()?.Text ?? string.Empty;
         }
 
-        public async Task StreamChatAsync(string systemPrompt, string userPrompt, Func<string, Task> onToken)
+
+
+        public async Task StreamChatAsync(string systemPrompt, string userPrompt, Func<string, Task> onToken, CancellationToken cancellationToken = default)
         {
             var chatClient = _client.GetChatClient(_chatDeployment);
 

@@ -14,12 +14,12 @@ namespace RagAgents.Core.Services
     public class DocumentIngestService : IDocumentIngestService
     {
         private readonly IDocumentTextExtractor _textExtractor;
-        private readonly IAzureOpenAIService _openAI;      // Use AzureOpenAIService (2.1.0)
-        private readonly IAzureSearchService _search;      // Azure.Search.Documents based service
-        public DocumentIngestService(IDocumentTextExtractor textExtractor, IAzureOpenAIService openAI,IAzureSearchService search)
+        private readonly IOpenAIEmbeddingService  _openAIEmbeddingService;      // Use AzureOpenAIService (2.1.0)
+        private readonly ISearchIndexer _search;      // Azure.Search.Documents based service
+        public DocumentIngestService(IDocumentTextExtractor textExtractor, IOpenAIEmbeddingService openAIEmbeddingService, ISearchIndexer search)
         {
             _textExtractor = textExtractor;
-            _openAI = openAI;
+            _openAIEmbeddingService = openAIEmbeddingService;
             _search = search;
 
         }
@@ -47,7 +47,7 @@ namespace RagAgents.Core.Services
                 foreach (var chunk in chunks)
                 {
                     // Generate embedding using Azure OpenAI
-                    var embedding = await _openAI.CreateEmbeddingAsync(chunk);
+                    var embedding = await _openAIEmbeddingService.CreateEmbeddingAsync(chunk);
 
                     // Index chunk in Azure AI Search
                     await _search.IndexAsync(new

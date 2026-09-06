@@ -11,26 +11,26 @@ namespace RagAgents.Core.Services
 {
     public class RagService : IRagService
     {
-        private readonly IAzureOpenAIService _openAI;
-        private readonly IAzureSearchService _search;
+        private readonly IOpenAIEmbeddingService _openAIEmbeddingService;
+        private readonly ISearchIndexer _search;
         private readonly IConversationStoreInMemory _conversationStore;
-        public RagService(IAzureOpenAIService openAI,IAzureSearchService search, IConversationStoreInMemory conversationStore)
+        public RagService(IOpenAIEmbeddingService openAIEmbeddingService,ISearchIndexer search, IConversationStoreInMemory conversationStore)
         {
-            _openAI = openAI;
+            _openAIEmbeddingService = openAIEmbeddingService;
             _search = search;
             _conversationStore = conversationStore;
 
         }
         public async Task<string> AskAsync(string question)
         {
-            var embedding = await _openAI.CreateEmbeddingAsync(question);
+            var embedding = await _openAIEmbeddingService.CreateEmbeddingAsync(question);
             var chunks = await _search.VectorSearchAsync(embedding);
 
             var context = string.Join("\n", chunks);
 
             var prompt = PromptTemplates.AnswerWithContext(context, question);
 
-            return await _openAI.GenerateAnswerAsync(prompt);
+            return await _openAIEmbeddingService.GenerateAnswerAsync(prompt);
         }
 
         public async Task<ChatMessageModel> AskWithHistoryNoStreamAsync(string question, string conversationId, string userId)
@@ -52,7 +52,7 @@ namespace RagAgents.Core.Services
                 history.Select(m => $"{m.Role}: {m.Content}"));
 
             // 3️RAG retrieval
-            var embedding = await _openAI.CreateEmbeddingAsync(question);
+            var embedding = await _openAIEmbeddingService.CreateEmbeddingAsync(question);
             var chunks = await _search.VectorSearchAsync(embedding);
             var context = string.Join("\n", chunks);
 
@@ -60,7 +60,7 @@ namespace RagAgents.Core.Services
                 var prompt = PromptTemplates.AnswerWithHistory(historyText, context, question);
 
             // 5️⃣ Call LLM (NON-streaming)
-            var answer = await _openAI.GenerateAnswerAsync(prompt);
+            var answer = await _openAIEmbeddingService.GenerateAnswerAsync(prompt);
 
             // 6️⃣ Save assistant message
             var assistantMessage = new ChatMessageModel

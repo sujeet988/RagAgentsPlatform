@@ -10,16 +10,16 @@ namespace RagAgents.Core.Agents
     // A lightweight agent that asks the LLM to produce a JSON plan and executes tools.
     public class AgentService : IAgent
     {
-        private readonly IAzureOpenAIService _openAI;
+        private readonly IOpenAIEmbeddingService _openAIEmbeddingService;
         private readonly IEnumerable<ITool> _tools;
         private readonly ILogger<AgentService> _logger;
         private readonly Dictionary<string, string> _aliases;
         private readonly HashSet<string> _allowedTools;
         private readonly int _maxSteps = 10;
 
-        public AgentService(IAzureOpenAIService openAI, IEnumerable<ITool> tools, ILogger<AgentService> logger)
+        public AgentService(IOpenAIEmbeddingService openAIEmbeddingService, IEnumerable<ITool> tools, ILogger<AgentService> logger)
         {
-            _openAI = openAI;
+            _openAIEmbeddingService = openAIEmbeddingService;
             _tools = tools;
             _logger = logger;
 
@@ -46,7 +46,7 @@ namespace RagAgents.Core.Agents
 
             _logger.LogInformation("Agent plan prompt: {prompt}", planPrompt);
 
-            var planJson = await _openAI.GenerateAnswerAsync(planPrompt);
+            var planJson = await _openAIEmbeddingService.GenerateAnswerAsync(planPrompt);
 
             AgentStep[] steps;
             try

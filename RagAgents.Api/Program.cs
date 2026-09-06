@@ -36,8 +36,8 @@ namespace RagAgents.Api
             builder.Services.Configure<AzureSearchAIOptions>(builder.Configuration.GetSection("AzureSearchAI"));
             #endregion
             #region Add/register services to the container.
-            builder.Services.AddSingleton<IAzureOpenAIService, AzureOpenAIService>();
-            builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
+            builder.Services.AddSingleton<IOpenAIEmbeddingService, AzureOpenAIEmbeddingService>();
+            builder.Services.AddSingleton<ISearchIndexer, AzureSearchSearchIndexerService>();
             builder.Services.AddSingleton<IConversationStoreInMemory, InMemoryConversationStore>();
             // RagService can be scoped per-request
             builder.Services.AddScoped<IRagService, RagService>();
@@ -47,8 +47,8 @@ namespace RagAgents.Api
             builder.Services.AddScoped<RagAgents.Core.Agents.IAgent, RagAgents.Core.Agents.AgentService>();
             builder.Services.AddScoped<RagAgents.Core.Agents.ITool, RagAgents.Core.Agents.SearchTool>(sp =>
             {
-                var search = sp.GetRequiredService<IAzureSearchService>();
-                var openAI = sp.GetRequiredService<IAzureOpenAIService>();
+                var search = sp.GetRequiredService<ISearchIndexer>();
+                var openAI = sp.GetRequiredService<IOpenAIEmbeddingService>();
                 return new RagAgents.Core.Agents.SearchTool(search, openAI);
             });
             builder.Services.AddScoped<RagAgents.Core.Agents.ITool, RagAgents.Core.Agents.PdfIngestTool>(sp =>

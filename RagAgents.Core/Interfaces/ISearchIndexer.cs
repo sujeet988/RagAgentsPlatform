@@ -2,7 +2,7 @@
 using Azure.Search.Documents.Models;
 namespace RagAgents.Core.Interfaces
 {
-    public interface IAzureSearchService
+    public interface ISearchIndexer
     {
         Task IndexAsync<T>(T document);
         Task<List<string>> VectorSearchAsync(float[] embedding);
