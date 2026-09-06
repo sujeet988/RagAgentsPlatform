@@ -42,11 +42,11 @@ builder.Services.AddSingleton<IAzureSearchService, AzureSearchService>();
 // Register PdfIngestService with the DocumentAnalysisClient injected
 builder.Services.AddSingleton<IDocumentIngestService>(sp =>
 {
-    var docClient = sp.GetRequiredService<DocumentAnalysisClient>();
+    var documenttextextextractor = sp.GetRequiredService<IDocumentTextExtractor>();
     var openAI = sp.GetRequiredService<IAzureOpenAIService>();
     var search = sp.GetRequiredService<IAzureSearchService>();
 
-    return new DocumentIngestService(docClient, openAI, search);
+    return new DocumentIngestService(documenttextextextractor, openAI, search);
 });
 
 // Register function-level facade

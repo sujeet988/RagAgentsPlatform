@@ -5,6 +5,7 @@ using RagAgents.Core.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,33 +13,29 @@ namespace RagAgents.Core.Services
 {
     public class DocumentIngestService : IDocumentIngestService
     {
-        private readonly DocumentAnalysisClient _docClient;
+        private readonly IDocumentTextExtractor _textExtractor;
         private readonly IAzureOpenAIService _openAI;      // Use AzureOpenAIService (2.1.0)
         private readonly IAzureSearchService _search;      // Azure.Search.Documents based service
-        public DocumentIngestService(DocumentAnalysisClient docClient,IAzureOpenAIService openAI,IAzureSearchService search)
+        public DocumentIngestService(IDocumentTextExtractor textExtractor, IAzureOpenAIService openAI,IAzureSearchService search)
         {
-            _docClient = docClient;
+            _textExtractor = textExtractor;
             _openAI = openAI;
             _search = search;
 
         }
-        public async Task IngestAsync(Stream pdf, string fileName)
+        public async Task IngestAsync(Stream document, string fileName, CancellationToken cancellationToken = default)
         {
             try
             {
 
 
-                // 1️⃣ Analyze PDF using prebuilt layout model
-                var operation = await _docClient.AnalyzeDocumentAsync(
-                    WaitUntil.Completed,
-                    "prebuilt-layout",
-                    pdf);
+                // 1. Extract text
+                var text = await _textExtractor.ExtractTextAsync(
+                    document,
+                    cancellationToken);
 
-                // 2️⃣ Extract all text from the document
-                var text = string.Join("\n",
-                    operation.Value.Pages
-                        .SelectMany(p => p.Lines)
-                        .Select(l => l.Content));
+                if (string.IsNullOrWhiteSpace(text))
+                    return;
 
                 // 3️⃣ Split text into manageable chunks
                 var chunks = ChunkingHelper.SplitTextByOverLap(text, 800, 100);

@@ -9,10 +9,12 @@ namespace RagAgents.Core.Services
     /// </summary>
     public class NoOpPdfIngestService : IDocumentIngestService
     {
-        public Task IngestAsync(Stream pdf, string fileName)
+        public Task IngestAsync(Stream pdf, string fileName, CancellationToken cancellationToken = default)
         {
             // intentionally do nothing in local/dev where DocumentAI is not configured
             return Task.CompletedTask;
         }
+
+     
     }
 }

@@ -9,6 +9,6 @@ namespace RagAgents.Core.Interfaces
     public interface IDocumentIngestService
     {
         // Ingest PDF -> extract text -> split -> generate embeddings -> index
-        Task IngestAsync(Stream pdf, string fileName);
+        Task IngestAsync(Stream pdf, string fileName, CancellationToken cancellationToken = default);
     }
 }
