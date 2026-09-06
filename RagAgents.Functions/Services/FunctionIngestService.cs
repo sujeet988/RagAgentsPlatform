@@ -7,16 +7,16 @@ namespace RagAgents.Functions.Services
 {
     public class FunctionIngestService : IFunctionIngestService
     {
-        private readonly IDocumentIngestService _pdfIngestService;
+        private readonly IDocumentIngestService _documentIngestService;
 
-        public FunctionIngestService(IDocumentIngestService pdfIngestService)
+        public FunctionIngestService(IDocumentIngestService documentIngestService)
         {
-            _pdfIngestService = pdfIngestService;
+            _documentIngestService = documentIngestService;
         }
 
         public async Task IngestBlobAsync(Stream blobStream, string name)
         {
-            await _pdfIngestService.IngestAsync(blobStream, name);
+            await _documentIngestService.IngestAsync(blobStream, name);
         }
     }
 }
