@@ -1,14 +1,11 @@
-using Azure;
-using Azure.AI.FormRecognizer.DocumentAnalysis;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using RagAgents.Core.Interfaces;
-using RagAgents.Core.Models;
-using RagAgents.Core.Services;
 using RagAgents.Functions.Helper;
+using RagAgents.Functions.IoC;
+
+FunctionUtility.LoadEnvironmentVariables();
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -18,40 +15,8 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-FunctionUtility.ValidateRequiredConfiguration(builder.Configuration);
-
-builder.Services.Configure<AzureOpenAIOptions>(options =>
-{
-    options.Endpoint = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Endpoint");
-    options.Key = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Key");
-    options.EmbeddingDeployment = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:EmbeddingDeployment");
-    options.ChatDeployment = builder.Configuration["AzureOpenAI:ChatDeployment"] ?? string.Empty;
-});
-builder.Services.Configure<AzureSearchAIOptions>(options =>
-{
-    options.Endpoint = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:Endpoint");
-    options.Key = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:Key");
-    options.IndexName = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:IndexName");
-    options.VectorDimensions = builder.Configuration.GetValue("AzureSearch:VectorDimensions", 3072);
-});
-builder.Services.Configure<IngestionOptions>(builder.Configuration.GetSection("Ingestion"));
-
-var config = builder.Configuration;
-
-builder.Services.AddSingleton<IOpenAIEmbeddingService, AzureOpenAIEmbeddingService>();
-builder.Services.AddSingleton<ISearchIndexer, AzureSearchSearchIndexerService>();
-builder.Services.AddSingleton<IDocumentTextExtractor, DocumentTextExtractor>();
-builder.Services.AddScoped<IDocumentIngestService, DocumentIngestService>();
-builder.Services.AddScoped<RagAgents.Functions.Services.IFunctionIngestService, RagAgents.Functions.Services.FunctionIngestService>();
-
-builder.Services.AddSingleton(sp =>
-{
-    return new DocumentAnalysisClient(
-    new Uri(FunctionUtility.GetRequiredConfiguration(config, "DocumentAI:Endpoint")),
-    new AzureKeyCredential(FunctionUtility.GetRequiredConfiguration(config, "DocumentAI:Key")));
-});
+builder.Services.AddFunctionAppServices(builder.Configuration);
 
 builder.Build().Run();
-
 
 
