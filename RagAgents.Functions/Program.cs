@@ -18,7 +18,7 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-ValidateRequiredConfiguration(builder.Configuration);
+FunctionUtility.ValidateRequiredConfiguration(builder.Configuration);
 
 builder.Services.Configure<AzureOpenAIOptions>(options =>
 {
@@ -53,27 +53,5 @@ builder.Services.AddSingleton(sp =>
 
 builder.Build().Run();
 
-static void ValidateRequiredConfiguration(IConfiguration configuration)
-{
-    var requiredKeys = new[]
-    {
-        "AzureOpenAI:Endpoint",
-        "AzureOpenAI:Key",
-        "AzureOpenAI:EmbeddingDeployment",
-        "AzureSearch:Endpoint",
-        "AzureSearch:Key",
-        "AzureSearch:IndexName",
-        "DocumentAI:Endpoint",
-        "DocumentAI:Key"
-    };
 
-    var missingKeys = requiredKeys
-        .Where(key => string.IsNullOrWhiteSpace(configuration[key]))
-        .ToArray();
-
-    if (missingKeys.Length > 0)
-    {
-        throw new InvalidOperationException($"Missing required configuration: {string.Join(", ", missingKeys)}");
-    }
-}
 
