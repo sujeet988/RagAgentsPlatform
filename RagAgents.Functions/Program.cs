@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 using RagAgents.Functions.Helper;
 using RagAgents.Functions.IoC;
 
-FunctionUtility.LoadEnvironmentVariables();
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
