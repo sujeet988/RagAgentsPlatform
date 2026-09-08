@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using RagAgents.Core.Interfaces;
 using RagAgents.Core.Models;
 using RagAgents.Core.Services;
+using RagAgents.Functions.Helper;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -21,16 +22,16 @@ ValidateRequiredConfiguration(builder.Configuration);
 
 builder.Services.Configure<AzureOpenAIOptions>(options =>
 {
-    options.Endpoint = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Endpoint");
-    options.Key = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Key");
-    options.EmbeddingDeployment = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:EmbeddingDeployment");
+    options.Endpoint = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Endpoint");
+    options.Key = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Key");
+    options.EmbeddingDeployment = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:EmbeddingDeployment");
     options.ChatDeployment = builder.Configuration["AzureOpenAI:ChatDeployment"] ?? string.Empty;
 });
 builder.Services.Configure<AzureSearchAIOptions>(options =>
 {
-    options.Endpoint = GetRequiredConfiguration(builder.Configuration, "AzureSearch:Endpoint");
-    options.Key = GetRequiredConfiguration(builder.Configuration, "AzureSearch:Key");
-    options.IndexName = GetRequiredConfiguration(builder.Configuration, "AzureSearch:IndexName");
+    options.Endpoint = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:Endpoint");
+    options.Key = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:Key");
+    options.IndexName = FunctionUtility.GetRequiredConfiguration(builder.Configuration, "AzureSearch:IndexName");
     options.VectorDimensions = builder.Configuration.GetValue("AzureSearch:VectorDimensions", 3072);
 });
 builder.Services.Configure<IngestionOptions>(builder.Configuration.GetSection("Ingestion"));
@@ -46,8 +47,8 @@ builder.Services.AddScoped<RagAgents.Functions.Services.IFunctionIngestService, 
 builder.Services.AddSingleton(sp =>
 {
     return new DocumentAnalysisClient(
-    new Uri(GetRequiredConfiguration(config, "DocumentAI:Endpoint")),
-    new AzureKeyCredential(GetRequiredConfiguration(config, "DocumentAI:Key")));
+    new Uri(FunctionUtility.GetRequiredConfiguration(config, "DocumentAI:Endpoint")),
+    new AzureKeyCredential(FunctionUtility.GetRequiredConfiguration(config, "DocumentAI:Key")));
 });
 
 builder.Build().Run();
@@ -76,7 +77,3 @@ static void ValidateRequiredConfiguration(IConfiguration configuration)
     }
 }
 
-static string GetRequiredConfiguration(IConfiguration configuration, string key)
-{
-    return configuration[key] ?? throw new InvalidOperationException($"Missing required configuration: {key}");
-}
