@@ -3,9 +3,11 @@ using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using RagAgents.Functions.Services;
+using System.Diagnostics.CodeAnalysis;
 
 namespace RagAgents.Functions.Functions;
 
+[ExcludeFromCodeCoverage]
 public class DocumentIngestFunction
 {
     private readonly IFunctionIngestService  _functionIngestService;

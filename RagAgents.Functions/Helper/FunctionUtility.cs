@@ -1,19 +1,21 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace RagAgents.Functions.Helper
 {
+    [ExcludeFromCodeCoverage]
     public static class FunctionUtility
     {
         public static string GetRequiredConfiguration(IConfiguration configuration, string key)
         {
             return configuration[key] ?? throw new InvalidOperationException($"Missing required configuration: {key}");
         }
-       public static void ValidateRequiredConfiguration(IConfiguration configuration)
+        public static void ValidateRequiredConfiguration(IConfiguration configuration)
         {
             var requiredKeys = new[]
             {
