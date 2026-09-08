@@ -18,6 +18,7 @@ namespace RagAgents.Core.Models
         public string Endpoint { get; set; } = default!;
         public string Key { get; set; } = default!;
         public string IndexName { get; set; } = default!;
+        public int VectorDimensions { get; set; } = 3072;
 
     }
 }

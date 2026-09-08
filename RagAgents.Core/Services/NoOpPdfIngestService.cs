@@ -1,4 +1,5 @@
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -9,10 +10,15 @@ namespace RagAgents.Core.Services
     /// </summary>
     public class NoOpPdfIngestService : IDocumentIngestService
     {
-        public Task IngestAsync(Stream pdf, string fileName, CancellationToken cancellationToken = default)
+        public Task<DocumentIngestResult> IngestAsync(DocumentIngestRequest request, CancellationToken cancellationToken = default)
         {
             // intentionally do nothing in local/dev where DocumentAI is not configured
-            return Task.CompletedTask;
+            return Task.FromResult(new DocumentIngestResult(
+                request.DocumentId ?? request.FileName,
+                request.DocumentVersion ?? "noop",
+                request.FileName,
+                0,
+                DateTimeOffset.UtcNow));
         }
 
      

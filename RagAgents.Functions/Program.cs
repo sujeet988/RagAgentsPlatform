@@ -17,48 +17,66 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-// mannaly  bind config value :
+ValidateRequiredConfiguration(builder.Configuration);
+
 builder.Services.Configure<AzureOpenAIOptions>(options =>
 {
-    options.Endpoint = builder.Configuration["AzureOpenAI:Endpoint"];
-    options.Key = builder.Configuration["AzureOpenAI:Key"];
-    options.EmbeddingDeployment = builder.Configuration["AzureOpenAI:EmbeddingDeployment"];
-    options.ChatDeployment = builder.Configuration["AzureOpenAI:ChatDeployment"];
+    options.Endpoint = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Endpoint");
+    options.Key = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:Key");
+    options.EmbeddingDeployment = GetRequiredConfiguration(builder.Configuration, "AzureOpenAI:EmbeddingDeployment");
+    options.ChatDeployment = builder.Configuration["AzureOpenAI:ChatDeployment"] ?? string.Empty;
 });
 builder.Services.Configure<AzureSearchAIOptions>(options =>
 {
-    options.Endpoint = builder.Configuration["AzureSearch:Endpoint"];
-    options.Key = builder.Configuration["AzureSearch:Key"];
-    options.IndexName = builder.Configuration["AzureSearch:IndexName"];
+    options.Endpoint = GetRequiredConfiguration(builder.Configuration, "AzureSearch:Endpoint");
+    options.Key = GetRequiredConfiguration(builder.Configuration, "AzureSearch:Key");
+    options.IndexName = GetRequiredConfiguration(builder.Configuration, "AzureSearch:IndexName");
+    options.VectorDimensions = builder.Configuration.GetValue("AzureSearch:VectorDimensions", 3072);
 });
+builder.Services.Configure<IngestionOptions>(builder.Configuration.GetSection("Ingestion"));
 
-// get all config values
 var config = builder.Configuration;
-var result = config["DocumentAI:Endpoint"];
 
-//ADD YOUR SERVICES HERE 
 builder.Services.AddSingleton<IOpenAIEmbeddingService, AzureOpenAIEmbeddingService>();
 builder.Services.AddSingleton<ISearchIndexer, AzureSearchSearchIndexerService>();
-// Register PdfIngestService with the DocumentAnalysisClient injected
-builder.Services.AddSingleton<IDocumentIngestService>(sp =>
-{
-    var documenttextextextractor = sp.GetRequiredService<IDocumentTextExtractor>();
-    var openAI = sp.GetRequiredService<IOpenAIEmbeddingService>();
-    var search = sp.GetRequiredService<ISearchIndexer>();
-
-    return new DocumentIngestService(documenttextextextractor, openAI, search);
-});
-
-// Register function-level facade
+builder.Services.AddSingleton<IDocumentTextExtractor, DocumentTextExtractor>();
+builder.Services.AddScoped<IDocumentIngestService, DocumentIngestService>();
 builder.Services.AddScoped<RagAgents.Functions.Services.IFunctionIngestService, RagAgents.Functions.Services.FunctionIngestService>();
 
-
-// Register DocumentAnalysisClient for Form Recognizer
 builder.Services.AddSingleton(sp =>
 {
     return new DocumentAnalysisClient(
-        new Uri(config["DocumentAI:Endpoint"]),
-        new AzureKeyCredential(config["DocumentAI:Key"]));
+    new Uri(GetRequiredConfiguration(config, "DocumentAI:Endpoint")),
+    new AzureKeyCredential(GetRequiredConfiguration(config, "DocumentAI:Key")));
 });
 
 builder.Build().Run();
+
+static void ValidateRequiredConfiguration(IConfiguration configuration)
+{
+    var requiredKeys = new[]
+    {
+        "AzureOpenAI:Endpoint",
+        "AzureOpenAI:Key",
+        "AzureOpenAI:EmbeddingDeployment",
+        "AzureSearch:Endpoint",
+        "AzureSearch:Key",
+        "AzureSearch:IndexName",
+        "DocumentAI:Endpoint",
+        "DocumentAI:Key"
+    };
+
+    var missingKeys = requiredKeys
+        .Where(key => string.IsNullOrWhiteSpace(configuration[key]))
+        .ToArray();
+
+    if (missingKeys.Length > 0)
+    {
+        throw new InvalidOperationException($"Missing required configuration: {string.Join(", ", missingKeys)}");
+    }
+}
+
+static string GetRequiredConfiguration(IConfiguration configuration, string key)
+{
+    return configuration[key] ?? throw new InvalidOperationException($"Missing required configuration: {key}");
+}

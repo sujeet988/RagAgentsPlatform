@@ -1,5 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
+using RagAgents.Core.Models;
 
 namespace RagAgents.Functions.Services
 {
@@ -9,6 +10,11 @@ namespace RagAgents.Functions.Services
     /// </summary>
     public interface IFunctionIngestService
     {
-        Task IngestBlobAsync(Stream blobStream, string name);
+        Task<DocumentIngestResult> IngestBlobAsync(
+            Stream blobStream,
+            string name,
+            Uri? sourceUri = null,
+            string? documentVersion = null,
+            CancellationToken cancellationToken = default);
     }
 }

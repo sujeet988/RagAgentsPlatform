@@ -1,4 +1,5 @@
 using RagAgents.Core.Interfaces;
+using RagAgents.Core.Models;
 using RagAgents.Functions.Services;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,9 +15,20 @@ namespace RagAgents.Functions.Services
             _documentIngestService = documentIngestService;
         }
 
-        public async Task IngestBlobAsync(Stream blobStream, string name)
+        public Task<DocumentIngestResult> IngestBlobAsync(
+            Stream blobStream,
+            string name,
+            Uri? sourceUri = null,
+            string? documentVersion = null,
+            CancellationToken cancellationToken = default)
         {
-            await _documentIngestService.IngestAsync(blobStream, name);
+            var request = new DocumentIngestRequest(
+                Content: blobStream,
+                FileName: name,
+                SourceUri: sourceUri?.ToString(),
+                DocumentVersion: documentVersion);
+
+            return _documentIngestService.IngestAsync(request, cancellationToken);
         }
     }
 }

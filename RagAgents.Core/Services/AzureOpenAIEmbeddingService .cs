@@ -30,25 +30,27 @@ namespace RagAgents.Core.Services
         }
         public async Task<float[]> CreateEmbeddingAsync(string text, CancellationToken cancellationToken = default)
         {
-            try
-            {
-                var embeddingClient = _client.GetEmbeddingClient(_embedDeployment);
+            var embeddingClient = _client.GetEmbeddingClient(_embedDeployment);
 
-                var embeddingResult = await embeddingClient.GenerateEmbeddingAsync(text);
+            var embeddingResult = await embeddingClient.GenerateEmbeddingAsync(text, cancellationToken: cancellationToken);
 
-                // Access the embedding from the Value property, then call ToFloats()
-                return embeddingResult.Value.ToFloats().ToArray();
-
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            // Access the embedding from the Value property, then call ToFloats()
+            return embeddingResult.Value.ToFloats().ToArray();
         }
 
-        public Task<IReadOnlyList<float[]>> CreateEmbeddingsBatchAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken = default)
+        public async Task<IReadOnlyList<float[]>> CreateEmbeddingsBatchAsync(IReadOnlyList<string> texts, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            if (texts.Count == 0)
+            {
+                return Array.Empty<float[]>();
+            }
+
+            var embeddingClient = _client.GetEmbeddingClient(_embedDeployment);
+            var embeddingResult = await embeddingClient.GenerateEmbeddingsAsync(texts, cancellationToken: cancellationToken);
+
+            return embeddingResult.Value
+                .Select(embedding => embedding.ToFloats().ToArray())
+                .ToArray();
         }
 
         public async Task<string> GenerateAnswerAsync(string prompt, CancellationToken cancellationToken = default)
@@ -64,7 +66,7 @@ namespace RagAgents.Core.Services
             };
 
             // Call the Azure OpenAI chat completion API
-            var response = await chatClient.CompleteChatAsync(messages);
+            var response = await chatClient.CompleteChatAsync(messages, cancellationToken: cancellationToken);
 
             // Read the generated text
             return response.Value.Content.LastOrDefault()?.Text ?? string.Empty;
@@ -82,7 +84,7 @@ namespace RagAgents.Core.Services
             new UserChatMessage(userPrompt)
             };
 
-            await foreach (var update in chatClient.CompleteChatStreamingAsync(messages))
+            await foreach (var update in chatClient.CompleteChatStreamingAsync(messages, cancellationToken: cancellationToken))
             {
                 foreach (var content in update.ContentUpdate)
                 {
