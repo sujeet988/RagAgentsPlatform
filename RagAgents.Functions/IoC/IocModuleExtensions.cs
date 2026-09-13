@@ -35,13 +35,14 @@ namespace RagAgents.Functions.IoC
 
             services.AddSingleton<IOpenAIEmbeddingService, AzureOpenAIEmbeddingService>();
             services.AddSingleton<ISearchIndexer, AzureSearchSearchIndexerService>();
-            services.AddSingleton<IDocumentTextExtractor, DocumentTextExtractor>();
+            //  services.AddSingleton<IDocumentTextExtractor, DocumentTextExtractor>();
+            services.AddSingleton<IDocumentTextExtractor, PdfPigDocumentTextExtractor>();
             services.AddScoped<IDocumentIngestService, DocumentIngestService>();
             services.AddScoped<IFunctionIngestService, FunctionIngestService>();
 
-            services.AddSingleton(_ => new DocumentAnalysisClient(
-                new Uri(FunctionUtility.GetRequiredConfiguration(configuration, "DocumentAI:Endpoint")),
-                new AzureKeyCredential(FunctionUtility.GetRequiredConfiguration(configuration, "DocumentAI:Key"))));
+            //services.AddSingleton(_ => new DocumentAnalysisClient(
+            //    new Uri(FunctionUtility.GetRequiredConfiguration(configuration, "DocumentAI:Endpoint")),
+            //    new AzureKeyCredential(FunctionUtility.GetRequiredConfiguration(configuration, "DocumentAI:Key"))));
 
             return services;
         }
